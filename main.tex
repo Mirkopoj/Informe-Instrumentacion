@@ -161,7 +161,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
 %%%%%%%%%%%%%%%%%%%
 \begin{resumen}
 	Se presenta un sistema automático para la validación de circuitos electrónicos.
-	Este inyecta señales en la placa siendo probada y mide las señales de respuesta.
+	Este inyecta señales en la placa siendo probada y mide las respuestas.
 	Es capaz de medir tanto señales digitales como niveles analógicos de tensión.
 	Para circuitos que incluyen un microcontrolador, de tipo PIC, el sistema es capaz de programar
 	firmware, permitiendo probar la correcta funcionalidad de los módulos internos
@@ -219,6 +219,26 @@ software y realizar múltiples llamados al sistema desde el entorno de usuario p
 módulo de kernel dedicado, se puede escribir la información final que se desea obtener, la traducción y envío del
 mensaje ocurrirá en espacio del kernel de forma muy eficiente con una única llamada al sistema. 
 
+\subsection{Rust}
+
+Es un lenguaje de programación de sistemas orientado a la seguridad y la eficiencia. 
+Rust es un lenguaje compilado de alto nivel, que no utiliza un recolector de basura, 
+como lo hace Java por ejemplo. Permite un control fino de la memoria similar al de 
+C o C++, pero a diferencia de estos, Rust no utiliza un paradigma de alocación y 
+liberación explicita de memoria, sino que se basa un ``Borrow checker''.
+El ``Borrow checker'' consiste de un conjunto de reglas que limitan como se puede 
+programar en Rust, respetando estas reglas se obtienen un conjunto de garantías.
+Estas garantías incluyen un código libre de fugaz de memoria, inmunidad a condiciones 
+de carrera y validez de los datos al los que se accede. 
+Existen situaciones en las que el ``Borrow checker'' es demasiado estricto y para
+garantizar la seguridad opta por no compilar un código valido, antes que dar por valido
+un programa que pudiera fallar en algún escenario. Esto puede ser un problema cuando 
+se tiene un que acceder al hardware, por ejemplo si se quiere acceder a algún registro 
+de la plataforma que se esta utilizando, el ``Borrow checker'' no tiene forma de garantizar
+que dicho registro exista, depende del programador conocer la plataforma en la que se va a 
+ejecutar el programa, para ello existe un tipo de bloque de código llamado ``unsafe'', todo
+programa contenido en un bloque con esta etiqueta será compilado sin revisión del ``Borrow checker''.
+
 \clearpage
 \section{Materiales}
 
@@ -238,17 +258,17 @@ arquitectura ARM Cortex-A53. Cuenta con 1 ó 2 GB de memoria RAM, y Gbps Etherne
 \end{figure}
 
 Esta SCB interactúa con los sensores y motores coordinando el funcionamiento de la plataforma.
-A su vez esta se encarga de programar los microcontroladores, inyectar las señales, y leer 
+A su vez, esta se encarga de programar los microcontroladores, inyectar las señales y leer 
 las respuestas digitales. Como la mayoría de SCBs no contienen un ADCs incorporado, se utiliza
 un dispositivo externo para la medición analógica de niveles de tensión, los que luego son
-comunicados mediante le protocolo I2C.
+comunicados mediante el protocolo I2C.
 
-Por ultimo este SCB actúa como host de un servidor TCP, para que múltiples usuarios puedan acceder
+Por último, este SCB actúa como host de un servidor TCP, para que múltiples usuarios puedan acceder
 al HMI de forma remota.
 
 \subsection{PIC18F45K50}
 
-Este microcontrolador es el dispositivo externo antes mencionado que actúa como ADC y comunica los
+Este microcontrolador es el dispositivo externo antes mencionado, que actúa como ADC y comunica los
 valores de tensión medidos mediante I2C. Este resulta mucho mas capaz de lo requerido para la tarea.
 
 \subsection{Motorreductor}
@@ -266,7 +286,7 @@ genérica similar al que se muestra en la figura \ref{fig:motor}.
 \subsection{Servo motor}
 
 Los servo motores utilizados son micro servos, modelo MG90S, de la marca Tower Pro, como el que
-se muestra en la figura \ref{fig:servo}. Este cuenta con un torque de $1,8\kilogram f$ a $4,8\volt$,
+se muestra en la figura \ref{fig:servo}. Este cuenta con un torque de $1,8\kilogram f$ a $4,8\volt$
 y $2,2\kilogram f$ a $6\volt$.
 
 \begin{figure}[!ht]
@@ -278,10 +298,10 @@ y $2,2\kilogram f$ a $6\volt$.
 
 \subsection{Sensor óptico}
 
-Para detectar la presencia de una placa en los puntos relevantes del proceso se utilizaron sensores ópticos.
-Estos consisten de un led y un fototransistor, dispuestos de manera tal que el led permita que el fototransistor
-sature, la detección ocurre cuando un objeto obstruye el paso de luz, causando que le fototransistor entre en
-corte. Su aspecto y diagrama esquemático se pueden ve en la figura \ref{fig:sensoptico}.
+Para detectar la presencia de una placa en los puntos relevantes del proceso, se utilizaron sensores ópticos.
+Estos consisten en un led y un fototransistor, dispuestos de manera tal que el led permita que el fototransistor
+sature, la detección ocurre cuando un objeto obstruye el paso de luz, causando que el fototransistor entre en
+corte. Su aspecto y diagrama esquemático se pueden ver en la figura \ref{fig:sensoptico}.
 
 \begin{figure}[!h]
 	\begin{minipage}{.5\textwidth}
@@ -321,20 +341,39 @@ corte. Su aspecto y diagrama esquemático se pueden ve en la figura \ref{fig:sen
 \label{fig:sensoptico}
 \end{figure}
 
-\subsection{Pickle}
+\section{Estructura}
+
+Para automatizar las pruebas sobre los circuitos se suele utilizar una cama de Pogopins, 
+estas pueden estar completamente robotizadas, como la que se presenta, o pueden ser manuales,
+como la que se muestra en la figura \ref{fig:pogojig}.
+
+Para la construcción de esta plataforma se decidió un diseño basado en una cinta transportadora.
+Esta llevaría las placas hasta que estén debajo de la cama de pines, donde un sensor óptico detectaría 
+su presencia, deteniendo la cinta. Con la placa bajo la cama, un servo motor conectado a una leva 
+bajaría la cama. Con los Pogopins haciendo contacto con la placa, se quemaría el firmware de prueba.
+Luego se inyectarían valores de tensión y se pro
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[scale=0.1]{imagenes/pogojig.jpg}
+\caption{Ejemplo de ``test jig manual''}
+\label{fig:pogojig}
+\end{figure}
+
+\section{Pickle}
 
 Para poder realizar la programación de los PIC se utiliza el software Pickle. 
-Este provee una mecanismo para interactuar con el microcontrolador y quemar en el firmware.
+Este provee un mecanismo para interactuar con el microcontrolador y quemar en él un firmware.
 Su instalación es sencilla y puede lograrse con los comandos mostrados en el Código \ref{code:instalacionPickle}.
-Sin embargo, este solo posee soporte nativo para una contada selección de SBCs populares. En el caso del NanoPi NEO3,
-el programa depende de un modulo externo del kernel de Linux llamado GPIO BIT BANG.
+Sin embargo, este sólo posee soporte nativo para una contada selección de SBCs populares. En el caso del NanoPi NEO3,
+el programa depende de un módulo externo del kernel de Linux llamado GPIO BIT BANG.
 Compilar módulos del kernel requiere de la instalación de los headers del kernel, los cuales están asociados al kernel
 que se tiene instalado, el que a su vez depende de la arquitectura en la que se trabaje. Los paquetes de headers en los
 repositorios de Linux suelen seguir un consenso en sus nombres, bajo la siguiente estructura, 
 $linux-headers-\$(uname -r)$. En el caso del NanoPi NEO3, este consenso se rompe siendo el nombre del paquete, 
 $linux-headers-current-rockchip64$. Una vez instalados los headers del kernel, uno debe asegurarse de que exista
 un enlace simbólico, del directorio $/lib/modules/\$(uname -r)/build$ al directorio $/usr/src/$.
-Una vez todas las herramientas para la extensión del kernel estén en su lugar, se puede instalar el modulo 
+Una vez que todas las herramientas para la extensión del kernel estén en su lugar, se puede instalar el módulo 
 GPIO BIT BANG mediante los comandos mostrados en el Código \ref{code:instalacionGPIOBB} (el comando $hg$ requiere
 de la instalación de mercurial).
 
@@ -347,8 +386,7 @@ de la instalación de mercurial).
 	make
 	sudo make install
 	\end{lstlisting}
-	\caption{Instalación Pickle}robotizada
-Cómo se pronuncia
+	\caption{Instalación Pickle}
 	\label{code:instalacionPickle}
 \end{codigo}
 
@@ -362,8 +400,6 @@ Cómo se pronuncia
 	\caption{Instalación GPIO BIT BANG}
 	\label{code:instalacionGPIOBB}
 \end{codigo}
-
-
 
 \newpage
 \section{Ejercicios}
