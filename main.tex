@@ -37,8 +37,9 @@
 \usepackage{cancel}
 \usepackage{color}
 \usepackage{listings}
+\usetikzlibrary{shapes.geometric, arrows}
 \lstset{ %
-language=C++,                % choose the language of the code
+language=Rust,                % choose the language of the code
 basicstyle=\footnotesize,       % the size of the fonts that are used for the code
 numbers=left,                   % where to put the line-numbers
 numberstyle=\footnotesize,      % the size of the fonts that are used for the line-numbers
@@ -55,6 +56,11 @@ breaklines=true,        % sets automatic line breaking
 breakatwhitespace=false,    % sets if automatic breaks should only happen at whitespace
 escapeinside={\%*}{*)}          % if you want to add a comment within your code
 }
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!30]
+\tikzstyle{thread} = [trapezium left angle=70, trapezium right angle=110, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=green!30]
+\tikzstyle{process} = [rectangle, minimum width=3cm, minimum height=1cm, text centered, text width=3cm, draw=black, fill=orange!30]
+\tikzstyle{decision} = [diamond, text centered, draw=black, fill=blue!30]
+\tikzstyle{arrow} = [thick,->,>=stealth]
 %%%%
 %---------------------------Definición del environment resumen---------------------------
 \newcounter{resumen}
@@ -351,7 +357,13 @@ Para la construcción de esta plataforma se decidió un diseño basado en una ci
 Esta llevaría las placas hasta que estén debajo de la cama de pines, donde un sensor óptico detectaría 
 su presencia, deteniendo la cinta. Con la placa bajo la cama, un servo motor conectado a una leva 
 bajaría la cama. Con los Pogopins haciendo contacto con la placa, se quemaría el firmware de prueba.
-Luego se inyectarían valores de tensión y se pro
+Luego se inyectarían señales de acuerdo a una rutina de prueba y se medirán respuestas tanto digitales
+como analógicas. En base a las respuestas se clasifica la placa como valida o defectuosa. Dependiendo 
+de la clasificación dada se posicionaría, mediante un servo motor, un selector de dirección. Por último
+la cinta volvería a encenderse. Para evitar que la cinta se detenga, por una placa nueva para probar,
+antes de que la placa ya probada llegue al selector; se utilizan utilizan dos cintas independientes, 
+con un sensor óptico cerca del final de cada una. La primera se detiene cuando una placa llega a la
+posición de prueba, y la segunda cuando una la ultima placa pasa el selector.
 
 \begin{figure}[!ht]
 \centering
@@ -370,11 +382,11 @@ el programa depende de un módulo externo del kernel de Linux llamado GPIO BIT B
 Compilar módulos del kernel requiere de la instalación de los headers del kernel, los cuales están asociados al kernel
 que se tiene instalado, el que a su vez depende de la arquitectura en la que se trabaje. Los paquetes de headers en los
 repositorios de Linux suelen seguir un consenso en sus nombres, bajo la siguiente estructura, 
-$linux-headers-\$(uname -r)$. En el caso del NanoPi NEO3, este consenso se rompe siendo el nombre del paquete, 
-$linux-headers-current-rockchip64$. Una vez instalados los headers del kernel, uno debe asegurarse de que exista
-un enlace simbólico, del directorio $/lib/modules/\$(uname -r)/build$ al directorio $/usr/src/$.
+\textit{linux-headers-\$(uname -r)}. En el caso del NanoPi NEO3, este consenso se rompe siendo el nombre del paquete, 
+\textit{linux-headers-current-rockchip64}. Una vez instalados los headers del kernel, uno debe asegurarse de que exista
+un enlace simbólico, del directorio \textbf{/lib/modules/\$(uname -r)/build} al directorio \textbf{/usr/src/}.
 Una vez que todas las herramientas para la extensión del kernel estén en su lugar, se puede instalar el módulo 
-GPIO BIT BANG mediante los comandos mostrados en el Código \ref{code:instalacionGPIOBB} (el comando $hg$ requiere
+GPIO BIT BANG mediante los comandos mostrados en el Código \ref{code:instalacionGPIOBB} (el comando \textit{hg} requiere
 de la instalación de mercurial).
 
 \begin{codigo}[]
@@ -401,182 +413,251 @@ de la instalación de mercurial).
 	\label{code:instalacionGPIOBB}
 \end{codigo}
 
-\newpage
-\section{Ejercicios}
-\begin{mdframed}
-	\begin{itemize}
-		\item Análisis en CC
-		\begin{enumerate}
-			\item Busque la hoja de datos del transistor BC547 y obtenga los siguientes valores:
-			\begin{itemize}
-				\item Ganancia de corriente ($h_{fe}$)
-				\item Tensión base-emisor de encendido ($V_{BE}$)
-				\item Tensión colector-emisor máxima ($V_{CEmax}$)
-				\item Tensión colector-emisor de saturación ($V_{CEsat}$)
-				\item Corriente de colector máxima
-			\end{itemize}
-			\item Con los datos obtenidos, resuelva el circuito que se muestra en la figura \ref{circuito1} 
-				analíticamente para CC ($V_{in}=0$). Halle el punto de trabajo y grafíquelo.
-			\item Simúlelo y obtenga el punto de trabajo mediante simulación. Compare con lo calculado analíticamente.
-		\end{enumerate}
-		\item Análisis en CA
-		\begin{enumerate}
-			\item Resuelva el circuito \ref{circuito2} analíticamente para CA
-			\item Simúlelo y compare con los resultados obtenidos analíticamente.
-			\item ¿Qué diferencia se presentaría de utilizar un capacitor de desacople para $R_3$?
-		\end{enumerate}
-		\item Laboratorio
-		\begin{enumerate}
-			\item Implemente el circuito \ref{circuito2} en protoboard y registre la señal en función de la
-				señal de la entrada. Modifique la señal de entrada en un $20\%$ y registre el
-				cambio de la salida correspondiente. Obtenga a partir de la gráfica el valor
-				de $A_V$. (Recuerde que la mayoría de los osciloscopios modernos permiten
-				guardar la forma de onda en un dispositivo USB).
-			\item Mida $V_{CE}$ e $I_C$ (Si se le dificulta la medición de corriente recuerde 
-				que puede calcularlo mediante la medición de $V_{R1}$ y $R_1$)..
-		\end{enumerate}
-	\end{itemize}
-\end{mdframed}
+Pickle se configura por medio de un archivos llamado .pickle donde se especifica que mecanismo se va a utilizar 
+para programación, así como a que pines está conectada cada linea de programación del ICSP. En el código 
+\ref{code:.pickle} se puede ver un ejemplo de una configuración para GPIO BIT BANG.
+Los números asignados a cada linea indican el número de pin para Linux, el cual varia en cada dispositivo pero
+suele estar bien documentado. En el caso del NanoPi Neo3, los gpio estan distribuidos en 5 grupos, estos figuran 
+bajo \textbf{/dev}, como \textbf{gpiochipo0}, \textbf{gpiochipo1}, \textbf{gpiochipo2}, \textbf{gpiochipo3} y
+\textbf{gpiochipo4}. Dento de cada grupo hay 32 pines, numerados del 0 al 31. El número de pin de Linux es único,
+y se calcula como $(N^\circ\ de\ gpiochip)\cdot32\ +\ (N^\circ\ interno\ en\ el\ chip)$. Por ejemplo, el pin número
+cuatro, del gpiochip2, lleva el número $2\cdot32+4=68$ para Linux.
+
+\begin{codigo}[!h]
+	\begin{lstlisting}
+	PURA MIERDA CAMBIAR ESTO
+	\end{lstlisting}
+	\caption{Ejemplo de configuración de Pickle para GPIO BIT BANG}
+	\label{code:.pickle}
+\end{codigo}
+
+\section{Cinta}
+
+Para controlar la cinta se implementó un programa en Rust, que controla la cinta prendiendo y apagando un motor
+en función de eventos, como flancos ascendentes y descendentes en el pin conectado a un sensor óptico.
+La conexión con el sensor se muestra en el circuito \ref{cir:sensor-pin}.
+El principio de funcionamiento para las primera cinta es muy simple, prender el motor y mantenerlo así hasta
+ver un flanco ascendente en el pin del sensor, luego dar la orden de iniciar las pruebas, una vez terminadas las
+pruebas repetir el proceso. Este concepto tiene el problema de que la velocidad de transición del sensor óptico
+es muy lenta. Lo que causa que se detecten muchos flancos cada vez que una placa llega. La programación utilizada
+es orientada a eventos, no a interrupciones, por lo que cada evento de flanco es agregado a una cola FIFO y leída
+cuando se consulta. Esto causa que si una placa al llegar genera diez eventos, la rutina de parar la cinta, bajar
+la cama e intentar realizar las pruebas, se ejecutará diez veces a pesar de que hubiera una única placa. 
+Esto se solucionó midiendo el sensor en cada evento, e ignorando los eventos donde no había placa, esta solución
+se muestra en el código \ref{code:cinta1}, aquí el testeo de la placa se representó como una espera de cinco segundos.
+La solución fue efectiva cuando se estaba utilizando un led para simular el motor, una vez puesto el motor,
+como se muestra en el circuito \ref{cir:motor-pin}, que
+se planeaba utilizar, este inyectó pulsos inesperados, que fueron erróneamente detectados como eventos, y estos 
+podían ocurrir aun con una placa en el sensor, lo que causa que el evento no se descarte. Este nuevo problema
+se solucionó con un capacitor paralelo al motor.
+Por ultimo, para poder integrar este principio en el resto del proceso es necesario enviar un mensaje al segundo
+tramo de cinta dando aviso de que una placa acaba de ser probada.
 
 \begin{circuito}[!h]
-	\begin{minipage}{.5\textwidth}
-		\begin{center}
-			\begin{circuitikz}[american,]
-				\draw (0,0) node[npn](Q1){$Q_1$};
-				\draw (Q1.E) to[R=$R_3$]
-				++(0,-3) node[ground](GND){};
-				\draw (Q1.C) to[R=$R_1$]
-					++(0,3) node[vcc](VCC){$V_{CC}$};
-				\draw (Q1.B) to [short] 
-					++(-1,0) node[](in){} 
-					to[R=$R_4$]
-					(in |- GND) node[ground](){};
-				\draw (in |- in) to [R=$R_2$, *-] 
-					(in |- VCC) node[vcc](){$V_{CC}$};
-				\draw (in) ++(0.1,0) to [short, -o] 
-					++(-1.5, 0);
-				\draw (Q1.C) to [short, *-o] 
-					++(1.5, 0);
-			\end{circuitikz}
-		\end{center}
-	\end{minipage}%
-	\begin{minipage}{.5\textwidth}
-		\begin{center}
-			\begin{tabular}{| c | c |}
-				\hline
-				$Q_1$&BC547\\
-				\hline
-				$R_1$&$10\kiloohm$\\
-				\hline
-				$R_2$&$100\kiloohm$\\
-				\hline
-				$R_3$&$1\kiloohm$\\
-				\hline
-				$R_4$&$10\kiloohm$\\
-				\hline
-				$V_{CC}$&$12\volt$\\
-				\hline
-			\end{tabular}
-		\end{center}
-	\end{minipage}
-\caption{}
-\label{circuito1}
+	\begin{center}
+		\begin{circuitikz}[american,]
+			\draw (0,0) node[npn, photo](Q1){};
+			\draw (Q1.E) to[short]
+				++(0,0)
+				to[short]
+				++(-2,0)
+				node[](gnd){};
+			\draw (Q1.C) to [short, *-o] 
+				++(1.5, 0)
+				node[right](out){$GPIO$};
+			\draw (Q1.C) to [R=$10\kiloohm$] 
+				++(0,2)
+				node[vcc](vcc){$3\volt 3$};
+			\draw (-2,0.6) 
+				to[leD]
+				++(0,-1)
+				to[short]
+				(gnd |- gnd);
+			\draw (-2,0.6)
+				to[R=$330\ohm$]
+				(gnd |- vcc)
+				node[vcc](){$3\volt 3$};
+			\draw (-1,-0.77)
+				to[short, *-]
+				++(0,-1)
+				node[ground](){};
+		\end{circuitikz}
+	\end{center}
+\caption{Conexión del sensor óptico al NanoPi Neo3}
+\label{cir:sensor-pin}
 \end{circuito}
 
-\begin{equation}
-	\beta=520
-\end{equation}
+\begin{codigo}[!h]
+	\begin{lstlisting}
+	PURA MIERDA CAMBIAR ESTO
+	\end{lstlisting}
+	\caption{Código para controlar el primer tramo de cinta}
+	\label{code:cinta1}
+\end{codigo}
 
-\begin{figure}[!ht]
+\begin{circuito}[!h]
 	\begin{center}
-	\begin{tikzpicture}[
-		declare function={
-		recta_de_carga(\x)=
-		(\x) * (-1.09/12) + 1.09;
-		BJT(\x)= 
-		0.445 -
-		(1.09) * (e^(0.7/(\x+2.05)) - 1);
-		}
-	]
-	\begin{axis}[
-		xmin=0, xmax=13,
-		ymin=0, ymax=1.3, ytick={0,0.2,...,1.2},
-		axis lines=left,
-		domain=0:20,
-		xlabel = {$V_{CE} [\volt]$},
-		ylabel = {$I_{CQ} [\milliampere]$},
-		legend style={at={(1.4,1)}},
-	]
-	\addplot [mark=none,draw=red]  {BJT(x)};
-	\addplot [mark=none,draw=blue] {recta_de_carga(x)};
-	\addlegendentry{$I_{BQ}=710\nanoampere$}
-	\addlegendentry{Recta de carga}
-	\end{axis}
-	\draw[gray, dashed] (4.18,0) -- (4.18,1.6);
-	\draw[gray, dashed] (0,1.6) -- (4.18,1.6);
-	\draw[gray, dashed, <-] (4.18,1.8) -- (4.18,3.2) node[anchor=south]{$(7,93809\volt,369,2\microampere)$};
-	\filldraw[black] (4.18,1.6) circle (2pt) node[anchor=south west]{Punto Q};
-	\end{tikzpicture}
-	\caption{Punto de trabajo}
-	\label{fig:PuntoQ}
+		\begin{circuitikz}[american,]
+			\draw (0,0) node[nigfete,solderdot](Q1){};
+			\draw (0,1.5) node[elmech](motor){M};
+			\draw (Q1.S) to[short]
+				++(0,0)
+				node[ground](gnd){};
+				\draw (Q1.D) 
+					to[short] 
+					(motor.bottom);
+				\draw (motor.north) 
+					to[short]
+					++(0,0)
+					node[vcc](){5\volt};
+				\draw (Q1.G)
+					to[R=$10\kiloohm$]
+					++(-2,0)
+					to[short, -o]
+					++(-0.1,0)
+					node[left](){$GPIO$};
+		\end{circuitikz}
 	\end{center}
+\caption{Conexión del motorreductor al NanoPi Neo3}
+\label{cir:motor-pin}
+\end{circuito}
+
+La lógica del segundo tramo es aun más simple, esperando en un bucle el mensaje
+de que una placa fue probada, y ante su
+llegada encendiendo la cinta hasta el evento de que la placa pasó el selector.
+Esta implementación se muestra en el código \ref{code:cinta2}.
+
+\begin{codigo}[!h]
+	\begin{lstlisting}
+	PURA MIERDA CAMBIAR ESTO
+	\end{lstlisting}
+	\caption{Código para controlar el segundo tramo de cinta}
+	\label{code:cinta2}
+\end{codigo}
+
+\section{Servos}
+
+Tanto el servo que controla la posición de la cama, como el que controla la posición del selector
+son controlados bajo el mismo principio. Estos se controlan con una señal PWM con periodo de 20\milli\second
+y cuyo ciclo de trabajo refleja el angulo del servo. Según la hoja de datos del motor la alimentación debe
+estar contenida entre 4,8\volt y 6\volt, y los ciclos de trabajo tener una duración contenida entre 
+1\milli\second y 2\milli\second. Como en este caso la tensión de la señal de control es distinta de la
+tensión de alimentación, los valores del ciclo de trabajo se midieron a mano a base de prueba y error. 
+Ambos servos trabajan únicamente en dos posiciones, arriba-abajo para la cama y valida-invalida para el 
+selector, se buscaron los tiempos que resultan en las posiciones deseadas y se los programó de forma rígida
+como una constante en el código.
+En un microcontrolador se acostumbra a generar las señales PWM mediante interrupciones de timer, o algún
+módulo de dedicado a la tarea. En el caso de Linux desde el espacio de usuario esto no resulta posible.
+Existe una ultima forma para lograr este comportamiento, que en el espacio de los microcontroladores
+se considera mala practica, establecer un valor a la salida y, de forma bloqueante, esperar un tiempo
+determinado para restablecer el valor de la salida. Esto es considerado mala practica porque deja bloquea
+la ejecución total del código. En el caso del NanoPi Neo3, al contar este con un CPU multinucleo y estar
+ejecutando los programas sobre un sistema operativo multiproceso, este problema se vuelve irrelevante.
+Siempre y cuando el control del PWM se ejecute en un hilo independiente, el bloqueo de la ejecución no
+representa ningún tipo de problema. Para lograr controlar las posiciones de los servos desde otros hilos 
+de ejecución, se envían mensajes indicando que constante de periodo utilizar, para simplificar el procesamiento
+solo se envía un mensaje cuando se desea establecer una posición, y esta se sostiene hasta el próximo mensaje.
+La implementación del control PWM se muestra en el código \ref{code:PWM}.
+
+\begin{codigo}[!h]
+	\begin{lstlisting}
+	PURA MIERDA CAMBIAR ESTO
+	\end{lstlisting}
+	\caption{Controlar los servos mediante PWM}
+	\label{code:PWM}
+\end{codigo}
+
+\section{ADC}
+
+Como se mencionó anteriormente, el NanoPi Neo3 no cuenta con un ADC propio, por lo que se incorporó un 
+PIC18F45K50, con un firmware que realiza mediciones analógicas y envía los resultados por I2C.
+Este firmware es uno muy simple iterando entre tres mediciones y guardándolas en un buffer interno.
+Ante cada lectura consecutiva por I2C, se entrega de forma cíclica un valor del buffer y se pasa al siguiente.
+Se puede restaurar el valor inicial del buffer escribiendo por I2C el número 42.
+
+En cuanto al NanoPi Neo3, se realiza la comunicación utilizando un módulo de hardware dedicado al I2C.
+Se accede a este utilizando la interfaz \textbf{/dev/i2c-0}. En el código \ref{code:ADC-I2C}, se muestra un
+ejemplo donde se realizan 1000 consultas al PIC sobre cada la medición del ADC y se las promedia.
+
+\begin{codigo}[!h]
+	\begin{lstlisting}
+	PURA MIERDA CAMBIAR ESTO
+	\end{lstlisting}
+	\caption{Ejemplo de comunicación entre el NanoPi Neo3 y el PIC18F45K50 por I2C}
+	\label{code:ADC-I2C}
+\end{codigo}
+
+\section{Servidor}
+
+Todo el código de control del sistema es monitoreado dentro de un lazo infinito en un servidor TCP.
+La estructura del servidor se describe en la figura \ref{diagramaServer}.
+
+
+\begin{figure}[!h]
+	\begin{center}
+		\begin{tikzpicture}[node distance=2cm]
+
+			\node (start) [startstop] {Inicio};
+			\node (abrir) [process, below of=start] {Abrir puerto};
+			\node (lanza) [thread, below of=abrir] {Lanzar hilo de escucha};
+			\node (recibe) [process, below of=lanza] {Conexiones nuevas};
+			\node (hilo) [process, right of=lanza, xshift=4cm] {Esperar conexión};
+			\node (leer) [process, left of=recibe,xshift=-1.7cm] {Recibir de los clientes};
+			\node (control) [process, below of=leer] {Recolectar el estado del sistema};
+			\node (escribir) [process, below of=control] {Enviar a los  clientes};
+
+			\node (nueva) [process, below of=hilo] {Enviar conexión};
+			\node (lanzaCliente) [thread, below of=nueva] {Lanzar hilo de cliente};
+			\node (nueva) [process, below of=hilo] {Enviar conexión};
+
+			\node (lanzaSubCliente) [thread, below of=lanzaCliente] {Lanzar sub-hilo de cliente};
+			\node (hayCliente) [decision, below of=lanzaSubCliente, yshift=-1cm] {¿Hay cliente?};
+			\node (drop) [startstop, right of=hayCliente, xshift=2cm] {Muere el hilo};
+			\node (subclirecv) [process, below of=hayCliente, yshift=-1.5cm] {Recibir del sub-hilo};
+			\node (servrecv) [process, left of=subclirecv,xshift=-3cm] {Recibir del servidor};
+			\node (escribiServ) [process, below of=servrecv] {Enviar al servidor};
+
+			\node (esperarcli) [process, right of=lanzaSubCliente, xshift=4.2cm] {Esperar mensaje del cliente};
+			\node (enviarcli) [process, right of=subclirecv, xshift=4.2cm] {Enviar mensaje del cliente};
+
+			\draw [arrow] (start) -- (abrir);
+			\draw [arrow] (abrir) -- (lanza);
+			\draw [arrow] (lanza) -- node[midway, above] {Nuevo hilo} (hilo);
+			\draw [arrow] (lanza) -- (recibe);
+			\draw [arrow] (recibe) -- (leer);
+			\draw [arrow] (leer) -- (control);
+			\draw [arrow] (control) -- (escribir);
+			\draw [arrow] (escribir) -| (recibe);
+
+			\draw [arrow] (hilo) -- (nueva);
+			\draw [arrow] (nueva) -- node[midway, above] {Mensaje} (recibe);
+			\draw [arrow] (nueva) -- (lanzaCliente);
+			\draw [arrow] (lanzaCliente) -- ++(3,0)
+											|- (hilo);
+
+			\draw [arrow] (lanzaCliente) -- node[midway,left]{Nuevo hilo}(lanzaSubCliente);
+			\draw [arrow] (lanzaSubCliente) -- (hayCliente);
+			\draw [arrow] (hayCliente) -- node[midway,above]{No}(drop);
+			\draw [arrow] (hayCliente) -- node[midway,left]{Si}(subclirecv);
+			\draw [arrow] (subclirecv) |- node[midway,right]{Hay mensaje}(escribiServ);
+			\draw [arrow] (escribiServ) -- (servrecv);
+			\draw [arrow] (escribiServ) -- node[midway,above]{Mensaje}++(-6.7,0)
+											|- (leer);
+			\draw [arrow] (subclirecv) -- node[midway,above]{Timeout}(servrecv);
+			\draw [arrow] (servrecv) |- (hayCliente);
+			\draw [arrow] (escribir) |- node[midway,below]{Mensaje}(servrecv);
+
+			\draw [arrow] (lanzaSubCliente) -- node[midway,above]{Nuevo hilo}(esperarcli);
+			\draw [arrow] (esperarcli) -- (enviarcli);
+			\draw [arrow] (enviarcli) -- node[midway,above]{Mensaje}(subclirecv);
+
+
+		\end{tikzpicture}
+	\end{center}
+\caption{Diagrama de flujo del servidor}
+\label{fig:diagramaServer}
 \end{figure}
 
-\begin{circuito}[!h]
-	\begin{minipage}{.7\textwidth}
-			\begin{center}
-				\begin{circuitikz}[american,]
-					\draw (0,0)  node[above](B){B} 
-								to[R=$R_4 // R_2$]
-						(0,-3) node[ground](GND){};
-						\draw (0,0) to[short, i=$i_b$, *-]
-						++(1.5,0);
-						\draw (0.6,0) to[R=$R_\pi$, -*]
-						++(3,0) node[above](){E} 
-								node[](E){} 
-								to[R=$R_3$] 
-						++(0,-3) node[ground](){};
-					\draw (B |- E) to[short] 
-						++(-2, 0) node[](supl){}
-						to[sV=$V_{in}$] (supl |- GND) 
-						node[ground](){};
-					\draw (E |- E) to[cisource, l=$h_{fe}\cdot i_b$, invert]
-						++(3, 0) node[above](C){C}
-						to[R=$R_1$]
-						(C |- GND) node[ground](){};
-					\draw (C |- E) to [short, *-] 
-						++(2,0) node[](out){}
-						to[R=$R_5$]
-						++(0,-3) node[ground](){};
-					\draw (out |- out) to [short, *-o] 
-						++(1,0) node[right](){$V_{out}$};
-				\end{circuitikz}
-		\end{center}
-	\end{minipage}%
-	\begin{minipage}{.3\textwidth}
-		\begin{center}
-			\begin{tabular}{| c | c |}
-				\hline
-				$R_1$&$10\kiloohm$\\
-				\hline
-				$R_2$&$100\kiloohm$\\
-				\hline
-				$R_3$&$1\kiloohm$\\
-				\hline
-				$R_4$&$10\kiloohm$\\
-				\hline
-				$R_5$&$10\kiloohm$\\
-				\hline
-				$R_{\pi}$&$42,3\kiloohm$\\
-				\hline
-				$V_{in}$&$1{\volt}_{pp}$,5kHz\\
-				\hline
-			\end{tabular}
-		\end{center}
-	\end{minipage}
-\caption{Modelo $R_{\pi}$ equivalente al circuito \ref{circuito2}}
-\label{circuito3}
-\end{circuito}
 
 \clearpage
 \section{Conclusiones}
