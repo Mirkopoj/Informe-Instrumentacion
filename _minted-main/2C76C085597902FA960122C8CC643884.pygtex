@@ -1,0 +1,38 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{use}\PYG{+w}{ }\PYG{n}{gpiod}::\PYG{p}{\PYGZob{}}\PYG{n}{Chip}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{Options}\PYG{p}{\PYGZcb{};}
+\PYG{k}{use}\PYG{+w}{ }\PYG{n}{std}::\PYG{n}{time}::\PYG{n}{Duration}\PYG{p}{;}
+\PYG{k}{use}\PYG{+w}{ }\PYG{n}{std}::\PYG{n}{thread}::\PYG{n}{sleep}\PYG{p}{;}
+
+\PYG{k}{fn} \PYG{n+nf}{main}\PYG{p}{()}\PYG{+w}{ }\PYGZhy{}\PYGZgt{} \PYG{n+nc}{std}::\PYG{n}{io}::\PYG{n+nb}{Result}\PYG{o}{\PYGZlt{}}\PYG{p}{()}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{chip}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{Chip}::\PYG{n}{new}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}gpiochip3\PYGZdq{}}\PYG{p}{)}\PYG{o}{?}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// open chip}
+
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{opts}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{Options}::\PYG{n}{output}\PYG{p}{([}\PYG{l+m+mi}{4}\PYG{p}{])}\PYG{+w}{ }\PYG{c+c1}{// configure lines offsets}
+\PYG{+w}{        }\PYG{p}{.}\PYG{n}{values}\PYG{p}{([}\PYG{k+kc}{false}\PYG{p}{])}\PYG{+w}{ }\PYG{c+c1}{// optionally set initial values}
+\PYG{+w}{        }\PYG{p}{.}\PYG{n}{consumer}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}my\PYGZhy{}outputs\PYGZdq{}}\PYG{p}{);}\PYG{+w}{ }\PYG{c+c1}{// optionally set consumer string}
+
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{outputs}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{chip}\PYG{p}{.}\PYG{n}{request\PYGZus{}lines}\PYG{p}{(}\PYG{n}{opts}\PYG{p}{)}\PYG{o}{?}\PYG{p}{;}
+
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{periodo}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{Duration}::\PYG{n}{from\PYGZus{}millis}\PYG{p}{(}\PYG{l+m+mi}{20}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{buena}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{Duration}::\PYG{n}{from\PYGZus{}micros}\PYG{p}{(}\PYG{l+m+mi}{550}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{mala}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{Duration}::\PYG{n}{from\PYGZus{}micros}\PYG{p}{(}\PYG{l+m+mi}{2350}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{resto\PYGZus{}b}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{periodo}\PYG{o}{\PYGZhy{}}\PYG{n}{buena}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{resto\PYGZus{}m}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{periodo}\PYG{o}{\PYGZhy{}}\PYG{n}{mala}\PYG{p}{;}
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{k}{mut}\PYG{+w}{ }\PYG{n}{cont}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+
+\PYG{+w}{    }\PYG{k}{loop}\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{high}\PYG{p}{,}\PYG{n}{low}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{k}{if}\PYG{+w}{ }\PYG{n}{cont}\PYG{+w}{ }\PYG{o}{\PYGZgt{}=}\PYG{+w}{ }\PYG{l+m+mi}{50}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{p}{(}\PYG{n}{buena}\PYG{p}{,}\PYG{n}{resto\PYGZus{}b}\PYG{p}{)}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{}}\PYG{+w}{ }\PYG{k}{else}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{            }\PYG{p}{(}\PYG{n}{mala}\PYG{p}{,}\PYG{n}{resto\PYGZus{}m}\PYG{p}{)}
+\PYG{+w}{        }\PYG{p}{\PYGZcb{};}
+\PYG{+w}{        }\PYG{n}{outputs}\PYG{p}{.}\PYG{n}{set\PYGZus{}values}\PYG{p}{([}\PYG{k+kc}{true}\PYG{p}{])}\PYG{o}{?}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{sleep}\PYG{p}{(}\PYG{n}{high}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{outputs}\PYG{p}{.}\PYG{n}{set\PYGZus{}values}\PYG{p}{([}\PYG{k+kc}{false}\PYG{p}{])}\PYG{o}{?}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{sleep}\PYG{p}{(}\PYG{n}{low}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{cont}\PYG{+w}{ }\PYG{o}{+=}\PYG{l+m+mi}{1}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{cont}\PYG{+w}{ }\PYG{o}{\PYGZpc{}=}\PYG{+w}{ }\PYG{l+m+mi}{100}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+
+\PYG{+w}{    }\PYG{c+c1}{//Ok(())}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}

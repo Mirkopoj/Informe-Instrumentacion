@@ -38,6 +38,7 @@
 \usepackage{color}
 \usepackage{listings}
 \usetikzlibrary{shapes.geometric, arrows}
+\usepackage{minted}
 \lstset{ %
 language=C++,                % choose the language of the code
 basicstyle=\footnotesize,       % the size of the fonts that are used for the code
@@ -425,7 +426,15 @@ cuatro, del gpiochip2, lleva el número $2\cdot32+4=68$ para Linux.
 
 \begin{codigo}[!h]
 	\begin{lstlisting}
-	PURA MIERDA CAMBIAR ESTO
+		DEVICE=/dev/gpio-bb
+		IFACE=/dev/gpio-bb
+		SLEEP=1
+		BUSY=0
+		BITRULES=0x1000
+		VPP=103
+		PGM=101
+		PGC=102
+		PGD=100
 	\end{lstlisting}
 	\caption{Ejemplo de configuración de Pickle para GPIO BIT BANG}
 	\label{code:.pickle}
@@ -488,12 +497,17 @@ tramo de cinta dando aviso de que una placa acaba de ser probada.
 \end{circuito}
 
 \begin{codigo}[!h]
-	\begin{lstlisting}
-	PURA MIERDA CAMBIAR ESTO
-	\end{lstlisting}
+	\inputminted[
+		frame=lines,
+		framesep=2mm,
+		linenos
+	]{rust}{
+		codigos_modulares/cinta/src/main.rs
+	}
 	\caption{Código para controlar el primer tramo de cinta}
 	\label{code:cinta1}
 \end{codigo}
+
 
 \begin{circuito}[!h]
 	\begin{center}
@@ -528,9 +542,13 @@ llegada encendiendo la cinta hasta el evento de que la placa pasó el selector.
 Esta implementación se muestra en el código \ref{code:cinta2}.
 
 \begin{codigo}[!h]
-	\begin{lstlisting}
-	PURA MIERDA CAMBIAR ESTO
-	\end{lstlisting}
+	\inputminted[
+		frame=lines,
+		framesep=2mm,
+		linenos
+	]{rust}{
+		codigos_modulares/cinta2/src/main.rs
+	}
 	\caption{Código para controlar el segundo tramo de cinta}
 	\label{code:cinta2}
 \end{codigo}
@@ -560,9 +578,13 @@ solo se envía un mensaje cuando se desea establecer una posición, y esta se so
 La implementación del control PWM se muestra en el código \ref{code:PWM}.
 
 \begin{codigo}[!h]
-	\begin{lstlisting}
-	PURA MIERDA CAMBIAR ESTO
-	\end{lstlisting}
+	\inputminted[
+		frame=lines,
+		framesep=2mm,
+		linenos
+	]{rust}{
+		codigos_modulares/servo/src/main.rs
+	}
 	\caption{Controlar los servos mediante PWM}
 	\label{code:PWM}
 \end{codigo}
@@ -580,9 +602,13 @@ Se accede a este utilizando la interfaz \textbf{/dev/i2c-0}. En el código \ref{
 ejemplo donde se realizan 1000 consultas al PIC sobre cada la medición del ADC y se las promedia.
 
 \begin{codigo}[!h]
-	\begin{lstlisting}
-	PURA MIERDA CAMBIAR ESTO
-	\end{lstlisting}
+	\inputminted[
+		frame=lines,
+		framesep=2mm,
+		linenos
+	]{rust}{
+		codigos_modulares/i2c/src/main.rs
+	}
 	\caption{Ejemplo de comunicación entre el NanoPi Neo3 y el PIC18F45K50 por I2C}
 	\label{code:ADC-I2C}
 \end{codigo}

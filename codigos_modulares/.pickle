@@ -1,0 +1,9 @@
+DEVICE=/dev/gpio-bb
+IFACE=/dev/gpio-bb
+SLEEP=1
+BUSY=0
+BITRULES=0x1000
+VPP=103
+PGM=101
+PGC=102
+PGD=100

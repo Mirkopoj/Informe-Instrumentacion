@@ -1,0 +1,30 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{extern}\PYG{+w}{ }\PYG{k}{crate}\PYG{+w}{ }\PYG{n}{i2c\PYGZus{}linux}\PYG{p}{;}
+\PYG{k}{use}\PYG{+w}{ }\PYG{n}{i2c\PYGZus{}linux}::\PYG{n}{I2c}\PYG{p}{;}
+\PYG{k}{use}\PYG{+w}{ }\PYG{n}{std}::\PYG{n}{thread}\PYG{p}{;}
+\PYG{k}{use}\PYG{+w}{ }\PYG{n}{std}::\PYG{n}{time}::\PYG{n}{Duration}\PYG{p}{;}
+
+\PYG{k}{fn} \PYG{n+nf}{main}\PYG{p}{()}\PYG{+w}{ }\PYGZhy{}\PYGZgt{} \PYG{n+nc}{std}::\PYG{n}{io}::\PYG{n+nb}{Result}\PYG{o}{\PYGZlt{}}\PYG{p}{()}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{k}{mut}\PYG{+w}{ }\PYG{n}{i2c}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{I2c}::\PYG{n}{from\PYGZus{}path}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}/dev/i2c\PYGZhy{}0\PYGZdq{}}\PYG{p}{).}\PYG{n}{expect}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}i2c\PYGZdq{}}\PYG{p}{);}
+\PYG{+w}{    }\PYG{n}{i2c}\PYG{p}{.}\PYG{n}{smbus\PYGZus{}set\PYGZus{}slave\PYGZus{}address}\PYG{p}{(}\PYG{l+m+mh}{0x08}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kc}{false}\PYG{p}{).}\PYG{n}{expect}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}addr\PYGZdq{}}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{k}{mut}\PYG{+w}{ }\PYG{n}{cont}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{+w}{    }\PYG{n}{i2c}\PYG{p}{.}\PYG{n}{smbus\PYGZus{}write\PYGZus{}byte}\PYG{p}{(}\PYG{l+m+mi}{42}\PYG{p}{).}\PYG{n}{expect}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}Write\PYGZdq{}}\PYG{p}{);}\PYG{c+c1}{//Sincronizar el pic}
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{k}{mut}\PYG{+w}{ }\PYG{n}{tensiones}: \PYG{p}{[}\PYG{k+kt}{f64}\PYG{p}{;}\PYG{l+m+mi}{3}\PYG{p}{]}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{p}{[}\PYG{l+m+mf}{0.0}\PYG{p}{;}\PYG{l+m+mi}{3}\PYG{p}{];}
+\PYG{+w}{    }\PYG{k}{for}\PYG{+w}{ }\PYG{n}{\PYGZus{}}\PYG{+w}{ }\PYG{k}{in}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{o}{..}\PYG{l+m+mi}{3000}\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{adch}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{i2c}\PYG{p}{.}\PYG{n}{smbus\PYGZus{}read\PYGZus{}byte}\PYG{p}{().}\PYG{n}{expect}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}ReadH\PYGZdq{}}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{as}\PYG{+w}{ }\PYG{k+kt}{u16}\PYG{p}{;}
+\PYG{+w}{        }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{adcl}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{i2c}\PYG{p}{.}\PYG{n}{smbus\PYGZus{}read\PYGZus{}byte}\PYG{p}{().}\PYG{n}{expect}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}ReadL\PYGZdq{}}\PYG{p}{)}\PYG{+w}{ }\PYG{k}{as}\PYG{+w}{ }\PYG{k+kt}{u16}\PYG{p}{;}
+\PYG{+w}{        }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{adc}:\PYG{k+kt}{u16} \PYG{o}{=}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{adch}\PYG{+w}{ }\PYG{o}{\PYGZlt{}\PYGZlt{}}\PYG{l+m+mi}{8}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{+}\PYG{+w}{ }\PYG{n}{adcl}\PYG{p}{;}
+\PYG{+w}{        }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{tension}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{adc}\PYG{+w}{ }\PYG{k}{as}\PYG{+w}{ }\PYG{k+kt}{f64}\PYG{+w}{ }\PYG{o}{*}\PYG{+w}{ }\PYG{l+m+mf}{0.003225806452}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{tensiones}\PYG{p}{[}\PYG{n}{cont}\PYG{+w}{ }\PYG{k}{as}\PYG{+w}{ }\PYG{k+kt}{usize}\PYG{p}{]}\PYG{+w}{ }\PYG{o}{+=}\PYG{+w}{ }\PYG{n}{tension}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n+nf+fm}{println!}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}Read I2C data\PYGZob{}\PYGZcb{}: \PYGZob{}\PYGZcb{}V\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{cont}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{tension}\PYG{p}{);}
+\PYG{+w}{        }\PYG{n}{cont}\PYG{+w}{ }\PYG{o}{+=}\PYG{+w}{ }\PYG{l+m+mi}{1}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{cont}\PYG{+w}{ }\PYG{o}{\PYGZpc{}=}\PYG{+w}{ }\PYG{l+m+mi}{3}\PYG{p}{;}
+\PYG{+w}{        }\PYG{n}{thread}::\PYG{n}{sleep}\PYG{p}{(}\PYG{n}{Duration}::\PYG{n}{from\PYGZus{}millis}\PYG{p}{(}\PYG{l+m+mi}{1}\PYG{p}{));}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{    }\PYG{n+nf+fm}{println!}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}Tension 0: \PYGZob{}\PYGZcb{}V\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{tensiones}\PYG{p}{[}\PYG{l+m+mi}{0}\PYG{p}{]}\PYG{o}{/}\PYG{l+m+mf}{1000.0}\PYG{p}{);}
+\PYG{+w}{    }\PYG{n+nf+fm}{println!}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}Tension 1: \PYGZob{}\PYGZcb{}V\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{tensiones}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]}\PYG{o}{/}\PYG{l+m+mf}{1000.0}\PYG{p}{);}
+\PYG{+w}{    }\PYG{n+nf+fm}{println!}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}Tension 2: \PYGZob{}\PYGZcb{}V\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{tensiones}\PYG{p}{[}\PYG{l+m+mi}{2}\PYG{p}{]}\PYG{o}{/}\PYG{l+m+mf}{1000.0}\PYG{p}{);}
+
+\PYG{+w}{    }\PYG{n+nb}{Ok}\PYG{p}{(())}
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}
