@@ -1,7 +1,6 @@
 \begin{Verbatim}[commandchars=\\\{\}]
 \PYG{k}{use}\PYG{+w}{ }\PYG{n}{gpiod}::\PYG{p}{\PYGZob{}}\PYG{n}{Chip}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{Options}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{EdgeDetect}\PYG{p}{\PYGZcb{};}
-\PYG{k}{use}\PYG{+w}{ }\PYG{n}{std}::\PYG{n}{time}::\PYG{n}{Duration}\PYG{p}{;}
-\PYG{k}{use}\PYG{+w}{ }\PYG{n}{std}::\PYG{n}{thread}::\PYG{n}{sleep}\PYG{p}{;}
+\PYG{k}{use}\PYG{+w}{ }\PYG{n}{std}::\PYG{n}{sync}::\PYG{n}{mpsc}\PYG{p}{;}
 
 \PYG{k}{fn} \PYG{n+nf}{main}\PYG{p}{()}\PYG{+w}{ }\PYGZhy{}\PYGZgt{} \PYG{n+nc}{std}::\PYG{n}{io}::\PYG{n+nb}{Result}\PYG{o}{\PYGZlt{}}\PYG{p}{()}\PYG{o}{\PYGZgt{}}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
 \PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{chip}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{Chip}::\PYG{n}{new}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}gpiochip3\PYGZdq{}}\PYG{p}{)}\PYG{o}{?}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// open chip}
@@ -11,23 +10,23 @@
 \PYG{+w}{        }\PYG{p}{.}\PYG{n}{consumer}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}my\PYGZhy{}outputs\PYGZdq{}}\PYG{p}{);}\PYG{+w}{ }\PYG{c+c1}{// optionally set consumer string}
 
 \PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{ipts}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{Options}::\PYG{n}{input}\PYG{p}{([}\PYG{l+m+mi}{6}\PYG{p}{])}\PYG{+w}{ }\PYG{c+c1}{// configure lines offsets}
-\PYG{+w}{        }\PYG{p}{.}\PYG{n}{edge}\PYG{p}{(}\PYG{n}{EdgeDetect}::\PYG{n}{Rising}\PYG{p}{)}\PYG{+w}{ }
+\PYG{+w}{        }\PYG{p}{.}\PYG{n}{edge}\PYG{p}{(}\PYG{n}{EdgeDetect}::\PYG{n}{Falling}\PYG{p}{)}\PYG{+w}{ }
 \PYG{+w}{        }\PYG{p}{.}\PYG{n}{consumer}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}my\PYGZhy{}inputs\PYGZdq{}}\PYG{p}{);}\PYG{+w}{ }\PYG{c+c1}{// optionally set consumer string}
 
 \PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{outputs}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{chip}\PYG{p}{.}\PYG{n}{request\PYGZus{}lines}\PYG{p}{(}\PYG{n}{opts}\PYG{p}{)}\PYG{o}{?}\PYG{p}{;}
 \PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{k}{mut}\PYG{+w}{ }\PYG{n}{inputs}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{chip}\PYG{p}{.}\PYG{n}{request\PYGZus{}lines}\PYG{p}{(}\PYG{n}{ipts}\PYG{p}{)}\PYG{o}{?}\PYG{p}{;}
 
-\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{wait}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{Duration}::\PYG{n}{from\PYGZus{}secs}\PYG{p}{(}\PYG{l+m+mi}{5}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{p}{(}\PYG{n}{tx}\PYG{p}{,}\PYG{n}{rx}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{mpsc}::\PYG{n}{channel}\PYG{p}{();}
 
 \PYG{+w}{    }\PYG{k}{loop}\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{n}{rx}\PYG{p}{.}\PYG{n}{recv}\PYG{p}{();}\PYG{+w}{ }\PYG{c+c1}{//Recibe de forma bloqueante la salida de una placa}
 \PYG{+w}{        }\PYG{n}{outputs}\PYG{p}{.}\PYG{n}{set\PYGZus{}values}\PYG{p}{([}\PYG{k+kc}{true}\PYG{p}{])}\PYG{o}{?}\PYG{p}{;}
-\PYG{+w}{        }\PYG{k}{while}\PYG{+w}{ }\PYG{n}{inputs}\PYG{p}{.}\PYG{n}{get\PYGZus{}values}\PYG{p}{([}\PYG{k+kc}{false}\PYG{p}{;}\PYG{l+m+mi}{1}\PYG{p}{])}\PYG{o}{?}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{p}{[}\PYG{k+kc}{true}\PYG{p}{]}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{p}{\PYGZcb{}}
-\PYG{+w}{        }\PYG{k}{while}\PYG{+w}{ }\PYG{n}{inputs}\PYG{p}{.}\PYG{n}{get\PYGZus{}values}\PYG{p}{([}\PYG{k+kc}{false}\PYG{p}{;}\PYG{l+m+mi}{1}\PYG{p}{])}\PYG{o}{?}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{p}{[}\PYG{k+kc}{false}\PYG{p}{]}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{+w}{        }\PYG{k}{while}\PYG{+w}{ }\PYG{n}{inputs}\PYG{p}{.}\PYG{n}{get\PYGZus{}values}\PYG{p}{([}\PYG{k+kc}{false}\PYG{p}{;}\PYG{l+m+mi}{1}\PYG{p}{])}\PYG{o}{?}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{p}{[}\PYG{k+kc}{false}\PYG{p}{]}\PYG{+w}{ }\PYG{p}{\PYGZob{}}\PYG{+w}{ }\PYG{p}{\PYGZcb{}}
+\PYG{+w}{        }\PYG{k}{while}\PYG{+w}{ }\PYG{n}{inputs}\PYG{p}{.}\PYG{n}{get\PYGZus{}values}\PYG{p}{([}\PYG{k+kc}{false}\PYG{p}{;}\PYG{l+m+mi}{1}\PYG{p}{])}\PYG{o}{?}\PYG{+w}{ }\PYG{o}{==}\PYG{+w}{ }\PYG{p}{[}\PYG{k+kc}{true}\PYG{p}{]}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
 \PYG{+w}{            }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{event}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{inputs}\PYG{p}{.}\PYG{n}{read\PYGZus{}event}\PYG{p}{()}\PYG{o}{?}\PYG{p}{;}
 \PYG{+w}{            }\PYG{n+nf+fm}{println!}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}Evento: \PYGZob{}:?\PYGZcb{}\PYGZdq{}}\PYG{p}{,}\PYG{n}{event}\PYG{p}{);}
 \PYG{+w}{        }\PYG{p}{\PYGZcb{}}
 \PYG{+w}{        }\PYG{n}{outputs}\PYG{p}{.}\PYG{n}{set\PYGZus{}values}\PYG{p}{([}\PYG{k+kc}{false}\PYG{p}{])}\PYG{o}{?}\PYG{p}{;}
-\PYG{+w}{        }\PYG{n}{sleep}\PYG{p}{(}\PYG{n}{wait}\PYG{p}{);}
 \PYG{+w}{    }\PYG{p}{\PYGZcb{}}
 
 \PYG{p}{\PYGZcb{}}

@@ -32,7 +32,5 @@
 \PYG{+w}{        }\PYG{n}{cont}\PYG{+w}{ }\PYG{o}{+=}\PYG{l+m+mi}{1}\PYG{p}{;}
 \PYG{+w}{        }\PYG{n}{cont}\PYG{+w}{ }\PYG{o}{\PYGZpc{}=}\PYG{+w}{ }\PYG{l+m+mi}{100}\PYG{p}{;}
 \PYG{+w}{    }\PYG{p}{\PYGZcb{}}
-
-\PYG{+w}{    }\PYG{c+c1}{//Ok(())}
 \PYG{p}{\PYGZcb{}}
 \end{Verbatim}
