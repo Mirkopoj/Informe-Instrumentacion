@@ -39,7 +39,7 @@
 \usepackage{listings}
 \usetikzlibrary{shapes.geometric, arrows}
 \lstset{ %
-language=Rust,                % choose the language of the code
+language=C++,                % choose the language of the code
 basicstyle=\footnotesize,       % the size of the fonts that are used for the code
 numbers=left,                   % where to put the line-numbers
 numberstyle=\footnotesize,      % the size of the fonts that are used for the line-numbers
@@ -190,7 +190,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
 \subsection{Pogopins}
 
 Se conoce como Pogopin a un tipo de contacto con muelle como el que se muestra en la figura \ref{fig:pogopin}.
-Este permite realizar una conexión con una circuito impreso con únicamente un pad expuesto de forma robotizada.
+Este permite realizar una conexión con un circuito impreso con únicamente un pad expuesto de forma robotizada.
 
 \begin{figure}[!ht]
 \centering
@@ -231,16 +231,16 @@ Es un lenguaje de programación de sistemas orientado a la seguridad y la eficie
 Rust es un lenguaje compilado de alto nivel, que no utiliza un recolector de basura, 
 como lo hace Java por ejemplo. Permite un control fino de la memoria similar al de 
 C o C++, pero a diferencia de estos, Rust no utiliza un paradigma de alocación y 
-liberación explicita de memoria, sino que se basa un ``Borrow checker''.
+liberación explícita de memoria, sino que se basa un ``Borrow checker''.
 El ``Borrow checker'' consiste de un conjunto de reglas que limitan como se puede 
 programar en Rust, respetando estas reglas se obtienen un conjunto de garantías.
-Estas garantías incluyen un código libre de fugaz de memoria, inmunidad a condiciones 
+Estas garantías incluyen un código libre de fugas de memoria, inmunidad a condiciones 
 de carrera y validez de los datos al los que se accede. 
 Existen situaciones en las que el ``Borrow checker'' es demasiado estricto y para
-garantizar la seguridad opta por no compilar un código valido, antes que dar por valido
+garantizar la seguridad opta por no compilar un código válido, antes que dar por válido
 un programa que pudiera fallar en algún escenario. Esto puede ser un problema cuando 
-se tiene un que acceder al hardware, por ejemplo si se quiere acceder a algún registro 
-de la plataforma que se esta utilizando, el ``Borrow checker'' no tiene forma de garantizar
+se tiene que acceder al hardware, por ejemplo si se quiere acceder a algún registro 
+de la plataforma que se está utilizando, el ``Borrow checker'' no tiene forma de garantizar
 que dicho registro exista, depende del programador conocer la plataforma en la que se va a 
 ejecutar el programa, para ello existe un tipo de bloque de código llamado ``unsafe'', todo
 programa contenido en un bloque con esta etiqueta será compilado sin revisión del ``Borrow checker''.
@@ -361,9 +361,9 @@ Luego se inyectarían señales de acuerdo a una rutina de prueba y se medirán r
 como analógicas. En base a las respuestas se clasifica la placa como valida o defectuosa. Dependiendo 
 de la clasificación dada se posicionaría, mediante un servo motor, un selector de dirección. Por último
 la cinta volvería a encenderse. Para evitar que la cinta se detenga, por una placa nueva para probar,
-antes de que la placa ya probada llegue al selector; se utilizan utilizan dos cintas independientes, 
+antes de que la placa ya probada llegue al selector; se utilizan dos cintas independientes, 
 con un sensor óptico cerca del final de cada una. La primera se detiene cuando una placa llega a la
-posición de prueba, y la segunda cuando una la ultima placa pasa el selector.
+posición de prueba, y la segunda cuando la última placa pasa el selector.
 
 \begin{figure}[!ht]
 \centering
@@ -413,13 +413,13 @@ de la instalación de mercurial).
 	\label{code:instalacionGPIOBB}
 \end{codigo}
 
-Pickle se configura por medio de un archivos llamado .pickle donde se especifica que mecanismo se va a utilizar 
-para programación, así como a que pines está conectada cada linea de programación del ICSP. En el código 
+Pickle se configura por medio de un archivo llamado \textbf{.pickle} donde se especifica que mecanismo se va a utilizar 
+para programación, así como a que pines está conectada cada línea de programación del ICSP. En el código 
 \ref{code:.pickle} se puede ver un ejemplo de una configuración para GPIO BIT BANG.
-Los números asignados a cada linea indican el número de pin para Linux, el cual varia en cada dispositivo pero
+Los números asignados a cada linea indican el número de pin para Linux, el cuál varía en cada dispositivo pero
 suele estar bien documentado. En el caso del NanoPi Neo3, los gpio estan distribuidos en 5 grupos, estos figuran 
 bajo \textbf{/dev}, como \textbf{gpiochipo0}, \textbf{gpiochipo1}, \textbf{gpiochipo2}, \textbf{gpiochipo3} y
-\textbf{gpiochipo4}. Dento de cada grupo hay 32 pines, numerados del 0 al 31. El número de pin de Linux es único,
+\textbf{gpiochipo4}. Dento de cada grupo hay 32 pines, enumerados del 0 al 31. El número de pin de Linux es único,
 y se calcula como $(N^\circ\ de\ gpiochip)\cdot32\ +\ (N^\circ\ interno\ en\ el\ chip)$. Por ejemplo, el pin número
 cuatro, del gpiochip2, lleva el número $2\cdot32+4=68$ para Linux.
 
@@ -433,7 +433,7 @@ cuatro, del gpiochip2, lleva el número $2\cdot32+4=68$ para Linux.
 
 \section{Cinta}
 
-Para controlar la cinta se implementó un programa en Rust, que controla la cinta prendiendo y apagando un motor
+Para controlar la cinta se implementó un programa en Rust, el cuál funciona prendiendo y apagando un motor
 en función de eventos, como flancos ascendentes y descendentes en el pin conectado a un sensor óptico.
 La conexión con el sensor se muestra en el circuito \ref{cir:sensor-pin}.
 El principio de funcionamiento para las primera cinta es muy simple, prender el motor y mantenerlo así hasta
@@ -448,9 +448,9 @@ se muestra en el código \ref{code:cinta1}, aquí el testeo de la placa se repre
 La solución fue efectiva cuando se estaba utilizando un led para simular el motor, una vez puesto el motor,
 como se muestra en el circuito \ref{cir:motor-pin}, que
 se planeaba utilizar, este inyectó pulsos inesperados, que fueron erróneamente detectados como eventos, y estos 
-podían ocurrir aun con una placa en el sensor, lo que causa que el evento no se descarte. Este nuevo problema
+podían ocurrir aún con una placa en el sensor, lo que causa que el evento no se descarte. Este nuevo problema
 se solucionó con un capacitor paralelo al motor.
-Por ultimo, para poder integrar este principio en el resto del proceso es necesario enviar un mensaje al segundo
+Por último, para poder integrar este principio en el resto del proceso es necesario enviar un mensaje al segundo
 tramo de cinta dando aviso de que una placa acaba de ser probada.
 
 \begin{circuito}[!h]
@@ -539,23 +539,23 @@ Esta implementación se muestra en el código \ref{code:cinta2}.
 
 Tanto el servo que controla la posición de la cama, como el que controla la posición del selector
 son controlados bajo el mismo principio. Estos se controlan con una señal PWM con periodo de 20\milli\second
-y cuyo ciclo de trabajo refleja el angulo del servo. Según la hoja de datos del motor la alimentación debe
+y cuyo ciclo de trabajo refleja el ángulo del servo. Según la hoja de datos del motor la alimentación debe
 estar contenida entre 4,8\volt y 6\volt, y los ciclos de trabajo tener una duración contenida entre 
 1\milli\second y 2\milli\second. Como en este caso la tensión de la señal de control es distinta de la
 tensión de alimentación, los valores del ciclo de trabajo se midieron a mano a base de prueba y error. 
-Ambos servos trabajan únicamente en dos posiciones, arriba-abajo para la cama y valida-invalida para el 
+Ambos servos trabajan únicamente en dos posiciones, arriba-abajo para la cama y válida-inválida para el 
 selector, se buscaron los tiempos que resultan en las posiciones deseadas y se los programó de forma rígida
 como una constante en el código.
 En un microcontrolador se acostumbra a generar las señales PWM mediante interrupciones de timer, o algún
 módulo de dedicado a la tarea. En el caso de Linux desde el espacio de usuario esto no resulta posible.
-Existe una ultima forma para lograr este comportamiento, que en el espacio de los microcontroladores
-se considera mala practica, establecer un valor a la salida y, de forma bloqueante, esperar un tiempo
-determinado para restablecer el valor de la salida. Esto es considerado mala practica porque deja bloquea
-la ejecución total del código. En el caso del NanoPi Neo3, al contar este con un CPU multinucleo y estar
+Existe una última forma para lograr este comportamiento, que en el espacio de los microcontroladores
+se considera mala práctica, establecer un valor a la salida y, de forma bloqueante, esperar un tiempo
+determinado para restablecer el valor de la salida. Esto es considerado mala práctica porque deja bloqueada
+la ejecución total del código. En el caso del NanoPi Neo3, al contar este con un CPU multinúcleo y estar
 ejecutando los programas sobre un sistema operativo multiproceso, este problema se vuelve irrelevante.
 Siempre y cuando el control del PWM se ejecute en un hilo independiente, el bloqueo de la ejecución no
 representa ningún tipo de problema. Para lograr controlar las posiciones de los servos desde otros hilos 
-de ejecución, se envían mensajes indicando que constante de periodo utilizar, para simplificar el procesamiento
+de ejecución, se envían mensajes indicando que constante de período utilizar, para simplificar el procesamiento
 solo se envía un mensaje cuando se desea establecer una posición, y esta se sostiene hasta el próximo mensaje.
 La implementación del control PWM se muestra en el código \ref{code:PWM}.
 
@@ -590,12 +590,16 @@ ejemplo donde se realizan 1000 consultas al PIC sobre cada la medición del ADC 
 \section{Servidor}
 
 Todo el código de control del sistema es monitoreado dentro de un lazo infinito en un servidor TCP.
-La estructura del servidor se describe en la figura \ref{diagramaServer}.
-
+La estructura del servidor se describe en la figura \ref{fig:diagramaServer}.
 
 \begin{figure}[!h]
 	\begin{center}
 		\begin{tikzpicture}[node distance=2cm]
+
+			\filldraw[color=green!60, fill=green!5, very thick](-1.4,-19.6) rectangle (9.8,-9.3);
+			\filldraw[color=red!60, fill=red!5, very thick](-5.55,-11) rectangle (2.27,1);
+			\filldraw[color=blue!60, fill=blue!5, very thick](3.79,-8.6) rectangle (8.2,-3);
+			\filldraw[color=yellow!60, fill=yellow!5, very thick](10.4,-17.4) rectangle (13.95,-9.3);
 
 			\node (start) [startstop] {Inicio};
 			\node (abrir) [process, below of=start] {Abrir puerto};
@@ -654,10 +658,54 @@ La estructura del servidor se describe en la figura \ref{diagramaServer}.
 
 		\end{tikzpicture}
 	\end{center}
-\caption{Diagrama de flujo del servidor}
+\caption{Diagrama de flujo del servidor (Recuadro rojo: hilo principal. 
+Recuadro azul: hilo de escucha. 
+Recuadro verde: hilo de gestión de cliente. 
+Recuadro Amarillo: sub-hilo de gestión de cliente)}
 \label{fig:diagramaServer}
 \end{figure}
 
+El lazo principal, encargado del monitoreo y manejo de las comunicaciones, se ejecuta en el hilo principal del código. 
+Previo a entrar en dicho lazo, se lanza un hilo independiente para la gestión de la escucha del puerto.
+La gestión de escucha es muy simple, espera de forma bloqueante un cliente entrante. Cuando un cliente llega
+se crea un canal de comunicación y se envía un extremo al hilo principal y el otro extremo se envía, junto con su
+creación, a un nuevo hilo para el manejo del cliente.
+El hilo de manejo de cliente tiene que poder gestionar en simultaneo tanto los mensajes entrantes de los clientes,
+para enviar al hilo principal, y los mensajes del servidor para enviar a los clientes. Para reducir la carga 
+sobre el CPU, se realizan ambas operaciones de forma bloqueante, cada una en su propio hilo. 
+Cualquier cambio en el estado del sistema es enviado a todos los clientes conectados, y cualquier mensaje de
+control de un cliente llega al servidor y al sistema.
+
+\section{Cliente}
+
+El cliente sigue una lógica muy directa. Primero se conecta con el servidor, luego inicia un bucle de ejecución
+en tres partes. De forma no bloqueante se consulta si hay mensajes del servidor y si hay algún mensaje para 
+enviar se lo envía. Si llegó alguna actualización del servidor se la procesa, traduciendo los datos para poder
+mostrarlos en pantalla. Por ultimo se genera la imagen y se pregunta si ocurrió alguna interacción por teclado,
+si hubo interacción se la condensa en un mensaje para el servidor y se vuelve a iniciar el bucle.
+
+\begin{figure}[!h]
+	\begin{center}
+		\begin{tikzpicture}[node distance=2cm]
+
+			\node (start) [startstop] {Inicio};
+			\node (conectar) [process, below of=start] {Conectar al servidor};
+			\node (comunicar) [process, below of=conectar] {Comunicaciones con el servidor};
+			\node (procesar) [process, below of=comunicar] {Procesar};
+			\node (hmi) [process, below of=procesar] {Gestionar HMI};
+
+			\draw [arrow] (start) -- (conectar);
+			\draw [arrow] (conectar) -- (comunicar);
+			\draw [arrow] (comunicar) -- (procesar);
+			\draw [arrow] (procesar) -- (hmi);
+			\draw [arrow] (hmi) -- ++(3,0)
+										|- (comunicar);
+
+		\end{tikzpicture}
+	\end{center}
+\caption{Diagrama de flujo del cliente}
+\label{fig:diagramaCliente}
+\end{figure}
 
 \clearpage
 \section{Conclusiones}
