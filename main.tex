@@ -112,7 +112,7 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
 \rfoot{Universidad Nacional de Río Negro}
 
 %%%%%%%%%%%%%%%%% PALABRAS CLAVE 
-\palabras{Punto de trabajo, pequeña señal, analíticamente, simulación, laboratorio}
+\palabras{Rust, Linux, NanoPi Neo3, Pogopins, Testbed}
 %%%%%%%%%%%%%%%%%
 % Se escriben después del resumen y sintetizan los conceptos fundamentales del experimento a modo de etiquetas
 
@@ -176,15 +176,8 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
 	funcionales de los defectuosos de acuerdo al conjunto de reglas que se le den.
 	El estado de las pruebas puede ser monitoreado mediante un HMI.
 \end{resumen} 
-%%%%%%%%%%%%%%%%%%% 
-%\section{Objetivos} 
-% 
-%\begin{itemize} 
-%\item Aplicar mediante un ejemplo práctico conocimientos vistos en la materia.
-%\item Ampliar conocimientos y herramientas referidas a filtros.
-%\end{itemize}
-%\newpage
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage
 \section{Marco teórico}
 \label{Marco teórico}
 
@@ -348,11 +341,19 @@ corte. Su aspecto y diagrama esquemático se pueden ver en la figura \ref{fig:se
 \label{fig:sensoptico}
 \end{figure}
 
+\clearpage
 \section{Estructura}
 
 Para automatizar las pruebas sobre los circuitos se suele utilizar una cama de Pogopins, 
 estas pueden estar completamente robotizadas, como la que se presenta, o pueden ser manuales,
 como la que se muestra en la figura \ref{fig:pogojig}.
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[scale=0.1]{imagenes/pogojig.jpg}
+\caption{Ejemplo de ``test jig manual''}
+\label{fig:pogojig}
+\end{figure}
 
 Para la construcción de esta plataforma se decidió un diseño basado en una cinta transportadora.
 Esta llevaría las placas hasta que estén debajo de la cama de pines, donde un sensor óptico detectaría 
@@ -365,14 +366,24 @@ la cinta volvería a encenderse. Para evitar que la cinta se detenga, por una pl
 antes de que la placa ya probada llegue al selector; se utilizan dos cintas independientes, 
 con un sensor óptico cerca del final de cada una. La primera se detiene cuando una placa llega a la
 posición de prueba, y la segunda cuando la última placa pasa el selector.
+Para su construcción, como se muestra en la figura \ref{fig:impresora}, se imprimieron en 3D las piezas,
+que se pueden ver en la figura \ref{fig:piezas}.
 
 \begin{figure}[!ht]
 \centering
-\includegraphics[scale=0.1]{imagenes/pogojig.jpg}
-\caption{Ejemplo de ``test jig manual''}
-\label{fig:pogojig}
+\includegraphics[scale=0.2]{imagenes/Impresora.jpeg}
+\caption{Impresora 3D imprimiendo una pieza}
+\label{fig:impresora}
 \end{figure}
 
+\begin{figure}[!ht]
+\centering
+\includegraphics[scale=0.2]{imagenes/Piezas.jpeg}
+\caption{Piezas que componen la estructura}
+\label{fig:piezas}
+\end{figure}
+
+\clearpage
 \section{Pickle}
 
 Para poder realizar la programación de los PIC se utiliza el software Pickle. 
@@ -440,6 +451,7 @@ cuatro, del gpiochip2, lleva el número $2\cdot32+4=68$ para Linux.
 	\label{code:.pickle}
 \end{codigo}
 
+\clearpage
 \section{Cinta}
 
 Para controlar la cinta se implementó un programa en Rust, el cuál funciona prendiendo y apagando un motor
@@ -553,204 +565,197 @@ Esta implementación se muestra en el código \ref{code:cinta2}.
 	\label{code:cinta2}
 \end{codigo}
 
-\section{Servos}
-
-Tanto el servo que controla la posición de la cama, como el que controla la posición del selector
-son controlados bajo el mismo principio. Estos se controlan con una señal PWM con periodo de 20\milli\second
-y cuyo ciclo de trabajo refleja el ángulo del servo. Según la hoja de datos del motor la alimentación debe
-estar contenida entre 4,8\volt y 6\volt, y los ciclos de trabajo tener una duración contenida entre 
-1\milli\second y 2\milli\second. Como en este caso la tensión de la señal de control es distinta de la
-tensión de alimentación, los valores del ciclo de trabajo se midieron a mano a base de prueba y error. 
-Ambos servos trabajan únicamente en dos posiciones, arriba-abajo para la cama y válida-inválida para el 
-selector, se buscaron los tiempos que resultan en las posiciones deseadas y se los programó de forma rígida
-como una constante en el código.
-En un microcontrolador se acostumbra a generar las señales PWM mediante interrupciones de timer, o algún
-módulo de dedicado a la tarea. En el caso de Linux desde el espacio de usuario esto no resulta posible.
-Existe una última forma para lograr este comportamiento, que en el espacio de los microcontroladores
-se considera mala práctica, establecer un valor a la salida y, de forma bloqueante, esperar un tiempo
-determinado para restablecer el valor de la salida. Esto es considerado mala práctica porque deja bloqueada
-la ejecución total del código. En el caso del NanoPi Neo3, al contar este con un CPU multinúcleo y estar
-ejecutando los programas sobre un sistema operativo multiproceso, este problema se vuelve irrelevante.
-Siempre y cuando el control del PWM se ejecute en un hilo independiente, el bloqueo de la ejecución no
-representa ningún tipo de problema. Para lograr controlar las posiciones de los servos desde otros hilos 
-de ejecución, se envían mensajes indicando que constante de período utilizar, para simplificar el procesamiento
-solo se envía un mensaje cuando se desea establecer una posición, y esta se sostiene hasta el próximo mensaje.
-La implementación del control PWM se muestra en el código \ref{code:PWM}.
-
-\begin{codigo}[!h]
-	\inputminted[
-		frame=lines,
-		framesep=2mm,
-		linenos
-	]{rust}{
-		codigos_modulares/servo/src/main.rs
-	}
-	\caption{Controlar los servos mediante PWM (ejemplo del selector)}
-	\label{code:PWM}
-\end{codigo}
-
-\section{ADC}
-
-Como se mencionó anteriormente, el NanoPi Neo3 no cuenta con un ADC propio, por lo que se incorporó un 
-PIC18F45K50, con un firmware que realiza mediciones analógicas y envía los resultados por I2C.
-Este firmware es uno muy simple iterando entre tres mediciones y guardándolas en un buffer interno.
-Ante cada lectura consecutiva por I2C, se entrega de forma cíclica un valor del buffer y se pasa al siguiente.
-Se puede restaurar el valor inicial del buffer escribiendo por I2C el número 42.
-
-En cuanto al NanoPi Neo3, se realiza la comunicación utilizando un módulo de hardware dedicado al I2C.
-Se accede a este utilizando la interfaz \textbf{/dev/i2c-0}. En el código \ref{code:ADC-I2C}, se muestra un
-ejemplo donde se realizan 1000 consultas al PIC sobre cada la medición del ADC y se las promedia.
-
-\begin{codigo}[!h]
-	\inputminted[
-		frame=lines,
-		framesep=2mm,
-		linenos
-	]{rust}{
-		codigos_modulares/i2c/src/main.rs
-	}
-	\caption{Ejemplo de comunicación entre el NanoPi Neo3 y el PIC18F45K50 por I2C}
-	\label{code:ADC-I2C}
-\end{codigo}
-
-\section{Servidor}
-
-Todo el código de control del sistema es monitoreado dentro de un lazo infinito en un servidor TCP.
-La estructura del servidor se describe en la figura \ref{fig:diagramaServer}.
-
-\begin{figure}[!h]
-	\begin{center}
-		\begin{tikzpicture}[node distance=2cm]
-
-			\filldraw[color=green!60, fill=green!5, very thick](-1.4,-19.6) rectangle (9.8,-9.3);
-			\filldraw[color=red!60, fill=red!5, very thick](-5.55,-11) rectangle (2.27,1);
-			\filldraw[color=blue!60, fill=blue!5, very thick](3.79,-8.6) rectangle (8.2,-3);
-			\filldraw[color=yellow!60, fill=yellow!5, very thick](10.4,-17.4) rectangle (13.95,-9.3);
-
-			\node (start) [startstop] {Inicio};
-			\node (abrir) [process, below of=start] {Abrir puerto};
-			\node (lanza) [thread, below of=abrir] {Lanzar hilo de escucha};
-			\node (recibe) [process, below of=lanza] {Conexiones nuevas};
-			\node (hilo) [process, right of=lanza, xshift=4cm] {Esperar conexión};
-			\node (leer) [process, left of=recibe,xshift=-1.7cm] {Recibir de los clientes};
-			\node (control) [process, below of=leer] {Recolectar el estado del sistema};
-			\node (escribir) [process, below of=control] {Enviar a los  clientes};
-
-			\node (nueva) [process, below of=hilo] {Enviar conexión};
-			\node (lanzaCliente) [thread, below of=nueva] {Lanzar hilo de cliente};
-			\node (nueva) [process, below of=hilo] {Enviar conexión};
-
-			\node (lanzaSubCliente) [thread, below of=lanzaCliente] {Lanzar sub-hilo de cliente};
-			\node (hayCliente) [decision, below of=lanzaSubCliente, yshift=-1cm] {¿Hay cliente?};
-			\node (drop) [startstop, right of=hayCliente, xshift=2cm] {Muere el hilo};
-			\node (subclirecv) [process, below of=hayCliente, yshift=-1.5cm] {Recibir del sub-hilo};
-			\node (servrecv) [process, left of=subclirecv,xshift=-3cm] {Recibir del servidor};
-			\node (escribiServ) [process, below of=servrecv] {Enviar al servidor};
-
-			\node (esperarcli) [process, right of=lanzaSubCliente, xshift=4.2cm] {Esperar mensaje del cliente};
-			\node (enviarcli) [process, right of=subclirecv, xshift=4.2cm] {Enviar mensaje del cliente};
-
-			\draw [arrow] (start) -- (abrir);
-			\draw [arrow] (abrir) -- (lanza);
-			\draw [arrow] (lanza) -- node[midway, above] {Nuevo hilo} (hilo);
-			\draw [arrow] (lanza) -- (recibe);
-			\draw [arrow] (recibe) -- (leer);
-			\draw [arrow] (leer) -- (control);
-			\draw [arrow] (control) -- (escribir);
-			\draw [arrow] (escribir) -| (recibe);
-
-			\draw [arrow] (hilo) -- (nueva);
-			\draw [arrow] (nueva) -- node[midway, above] {Mensaje} (recibe);
-			\draw [arrow] (nueva) -- (lanzaCliente);
-			\draw [arrow] (lanzaCliente) -- ++(3,0)
-											|- (hilo);
-
-			\draw [arrow] (lanzaCliente) -- node[midway,left]{Nuevo hilo}(lanzaSubCliente);
-			\draw [arrow] (lanzaSubCliente) -- (hayCliente);
-			\draw [arrow] (hayCliente) -- node[midway,above]{No}(drop);
-			\draw [arrow] (hayCliente) -- node[midway,left]{Si}(subclirecv);
-			\draw [arrow] (subclirecv) |- node[midway,right]{Hay mensaje}(escribiServ);
-			\draw [arrow] (escribiServ) -- (servrecv);
-			\draw [arrow] (escribiServ) -- node[midway,above]{Mensaje}++(-6.7,0)
-											|- (leer);
-			\draw [arrow] (subclirecv) -- node[midway,above]{Timeout}(servrecv);
-			\draw [arrow] (servrecv) |- (hayCliente);
-			\draw [arrow] (escribir) |- node[midway,below]{Mensaje}(servrecv);
-
-			\draw [arrow] (lanzaSubCliente) -- node[midway,above]{Nuevo hilo}(esperarcli);
-			\draw [arrow] (esperarcli) -- (enviarcli);
-			\draw [arrow] (enviarcli) -- node[midway,above]{Mensaje}(subclirecv);
-
-
-		\end{tikzpicture}
-	\end{center}
-\caption{Diagrama de flujo del servidor (Recuadro rojo: hilo principal. 
-Recuadro azul: hilo de escucha. 
-Recuadro verde: hilo de gestión de cliente. 
-Recuadro Amarillo: sub-hilo de gestión de cliente)}
-\label{fig:diagramaServer}
-\end{figure}
-
-El lazo principal, encargado del monitoreo y manejo de las comunicaciones, se ejecuta en el hilo principal del código. 
-Previo a entrar en dicho lazo, se lanza un hilo independiente para la gestión de la escucha del puerto.
-La gestión de escucha es muy simple, espera de forma bloqueante un cliente entrante. Cuando un cliente llega
-se crea un canal de comunicación y se envía un extremo al hilo principal y el otro extremo se envía, junto con su
-creación, a un nuevo hilo para el manejo del cliente.
-El hilo de manejo de cliente tiene que poder gestionar en simultaneo tanto los mensajes entrantes de los clientes,
-para enviar al hilo principal, y los mensajes del servidor para enviar a los clientes. Para reducir la carga 
-sobre el CPU, se realizan ambas operaciones de forma bloqueante, cada una en su propio hilo. 
-Cualquier cambio en el estado del sistema es enviado a todos los clientes conectados, y cualquier mensaje de
-control de un cliente llega al servidor y al sistema.
-
-\section{Cliente}
-
-El cliente sigue una lógica muy directa. Primero se conecta con el servidor, luego inicia un bucle de ejecución
-en tres partes. De forma no bloqueante se consulta si hay mensajes del servidor y si hay algún mensaje para 
-enviar se lo envía. Si llegó alguna actualización del servidor se la procesa, traduciendo los datos para poder
-mostrarlos en pantalla. Por ultimo se genera la imagen y se pregunta si ocurrió alguna interacción por teclado,
-si hubo interacción se la condensa en un mensaje para el servidor y se vuelve a iniciar el bucle.
-
-\begin{figure}[!h]
-	\begin{center}
-		\begin{tikzpicture}[node distance=2cm]
-
-			\node (start) [startstop] {Inicio};
-			\node (conectar) [process, below of=start] {Conectar al servidor};
-			\node (comunicar) [process, below of=conectar] {Comunicaciones con el servidor};
-			\node (procesar) [process, below of=comunicar] {Procesar};
-			\node (hmi) [process, below of=procesar] {Gestionar HMI};
-
-			\draw [arrow] (start) -- (conectar);
-			\draw [arrow] (conectar) -- (comunicar);
-			\draw [arrow] (comunicar) -- (procesar);
-			\draw [arrow] (procesar) -- (hmi);
-			\draw [arrow] (hmi) -- ++(3,0)
-										|- (comunicar);
-
-		\end{tikzpicture}
-	\end{center}
-\caption{Diagrama de flujo del cliente}
-\label{fig:diagramaCliente}
-\end{figure}
-
 \clearpage
-\section{Conclusiones}
+\section{Servos}
+\label{Servos}
 
-Se obtuvieron resultados coherentes entre la practica, la simulación y el calculo analítico.
-Los resultados no fueron idénticos en cada ámbito, esto es esperable ya que los cálculos fueron
-realizados mediante un modelo simplificado, y la simulación es incapaz de ponderar todos los
-fenómenos de la naturaleza.\\
-Una de las mayores dificultades fue obtener una medición confiable de la diferencia de fase
-entre dos señales, al ser ambas sinusoidales fue posible estimar la diferencia de forma 
-intuitiva, pero realizar mediciones de ese estilo sobre una señal mas compleja podría traer 
-múltiples desafíos.\\
-Este amplificador tiene un ancho de banda que parece ir desde aproximadamente $1\kilohertz$,
-hasta $1\megahertz$, dentro de este ancho de banda la ganancia es bastante estable, y la fase
-se ve consistentemente invertida. Sumado a eso al ser una configuración polarizada en la zona
-activa del transistor, tiene un comportamiento muy lineal y no presenta casi distorsión.\\
-Por su baja distorsión podría ser usado para audio, aunque solo serviría como un amplificador
-de altos. Por su ancho de banda podría utilizarse como un amplificador de radiofrecuencia,
-con aplicación marítima de muy baja frecuencia o en AM, aunque su aplicación estaría limitada
-a preamplificar por su baja potencia.
+	Tanto el servo que controla la posición de la cama, como el que controla la posición del selector
+	son controlados bajo el mismo principio. Estos se controlan con una señal PWM con periodo de 20\milli\second
+	y cuyo ciclo de trabajo refleja el ángulo del servo. Según la hoja de datos del motor la alimentación debe
+	estar contenida entre 4,8\volt y 6\volt, y los ciclos de trabajo tener una duración contenida entre 
+	1\milli\second y 2\milli\second. Como en este caso la tensión de la señal de control es distinta de la
+	tensión de alimentación, los valores del ciclo de trabajo se midieron a mano a base de prueba y error. 
+	Ambos servos trabajan únicamente en dos posiciones, arriba-abajo para la cama y válida-inválida para el 
+	selector, se buscaron los tiempos que resultan en las posiciones deseadas y se los programó de forma rígida
+	como una constante en el código.
+	En un microcontrolador se acostumbra a generar las señales PWM mediante interrupciones de timer, o algún
+	módulo de dedicado a la tarea. En el caso de Linux desde el espacio de usuario esto no resulta posible.
+	Existe una última forma para lograr este comportamiento, que en el espacio de los microcontroladores
+	se considera mala práctica, establecer un valor a la salida y, de forma bloqueante, esperar un tiempo
+	determinado para restablecer el valor de la salida. Esto es considerado mala práctica porque deja bloqueada
+	la ejecución total del código. En el caso del NanoPi Neo3, al contar este con un CPU multinúcleo y estar
+	ejecutando los programas sobre un sistema operativo multiproceso, este problema se vuelve irrelevante.
+	Siempre y cuando el control del PWM se ejecute en un hilo independiente, el bloqueo de la ejecución no
+	representa ningún tipo de problema. Para lograr controlar las posiciones de los servos desde otros hilos 
+	de ejecución, se envían mensajes indicando que constante de período utilizar, para simplificar el procesamiento
+	solo se envía un mensaje cuando se desea establecer una posición, y esta se sostiene hasta el próximo mensaje.
+	La implementación del control PWM se muestra en el código \ref{code:PWM}.
+
+	\begin{codigo}[!h]
+		\inputminted[
+			frame=lines,
+			framesep=2mm,
+			linenos
+		]{rust}{
+			codigos_modulares/servo/src/main.rs
+		}
+		\caption{Controlar los servos mediante PWM (ejemplo del selector)}
+		\label{code:PWM}
+	\end{codigo}
+
+	\clearpage
+	\section{ADC}
+
+	Como se mencionó anteriormente, el NanoPi Neo3 no cuenta con un ADC propio, por lo que se incorporó un 
+	PIC18F45K50, con un firmware que realiza mediciones analógicas y envía los resultados por I2C.
+	Este firmware es uno muy simple iterando entre tres mediciones y guardándolas en un buffer interno.
+	Ante cada lectura consecutiva por I2C, se entrega de forma cíclica un valor del buffer y se pasa al siguiente.
+	Se puede restaurar el valor inicial del buffer escribiendo por I2C el número 42.
+
+	En cuanto al NanoPi Neo3, se realiza la comunicación utilizando un módulo de hardware dedicado al I2C.
+	Se accede a este utilizando la interfaz \textbf{/dev/i2c-0}. En el código \ref{code:ADC-I2C}, se muestra un
+	ejemplo donde se realizan 1000 consultas al PIC sobre cada la medición del ADC y se las promedia.
+
+	\begin{codigo}[!h]
+		\inputminted[
+			frame=lines,
+			framesep=2mm,
+			linenos
+		]{rust}{
+			codigos_modulares/i2c/src/main.rs
+		}
+		\caption{Ejemplo de comunicación entre el NanoPi Neo3 y el PIC18F45K50 por I2C}
+		\label{code:ADC-I2C}
+	\end{codigo}
+
+	\section{Servidor}
+
+	Todo el código de control del sistema es monitoreado dentro de un lazo infinito en un servidor TCP.
+	La estructura del servidor se describe en la figura \ref{fig:diagramaServer}.
+
+	\begin{figure}[!h]
+		\begin{center}
+			\begin{tikzpicture}[node distance=2cm]
+
+				\filldraw[color=green!60, fill=green!5, very thick](-1.4,-19.6) rectangle (9.8,-9.3);
+				\filldraw[color=red!60, fill=red!5, very thick](-5.55,-11) rectangle (2.27,1);
+				\filldraw[color=blue!60, fill=blue!5, very thick](3.79,-8.6) rectangle (8.2,-3);
+				\filldraw[color=yellow!60, fill=yellow!5, very thick](10.4,-17.4) rectangle (13.95,-9.3);
+
+				\node (start) [startstop] {Inicio};
+				\node (abrir) [process, below of=start] {Abrir puerto};
+				\node (lanza) [thread, below of=abrir] {Lanzar hilo de escucha};
+				\node (recibe) [process, below of=lanza] {Conexiones nuevas};
+				\node (hilo) [process, right of=lanza, xshift=4cm] {Esperar conexión};
+				\node (leer) [process, left of=recibe,xshift=-1.7cm] {Recibir de los clientes};
+				\node (control) [process, below of=leer] {Recolectar el estado del sistema};
+				\node (escribir) [process, below of=control] {Enviar a los  clientes};
+
+				\node (nueva) [process, below of=hilo] {Enviar conexión};
+				\node (lanzaCliente) [thread, below of=nueva] {Lanzar hilo de cliente};
+				\node (nueva) [process, below of=hilo] {Enviar conexión};
+
+				\node (lanzaSubCliente) [thread, below of=lanzaCliente] {Lanzar sub-hilo de cliente};
+				\node (hayCliente) [decision, below of=lanzaSubCliente, yshift=-1cm] {¿Hay cliente?};
+				\node (drop) [startstop, right of=hayCliente, xshift=2cm] {Muere el hilo};
+				\node (subclirecv) [process, below of=hayCliente, yshift=-1.5cm] {Recibir del sub-hilo};
+				\node (servrecv) [process, left of=subclirecv,xshift=-3cm] {Recibir del servidor};
+				\node (escribiServ) [process, below of=servrecv] {Enviar al servidor};
+
+				\node (esperarcli) [process, right of=lanzaSubCliente, xshift=4.2cm] {Esperar mensaje del cliente};
+				\node (enviarcli) [process, right of=subclirecv, xshift=4.2cm] {Enviar mensaje del cliente};
+
+				\draw [arrow] (start) -- (abrir);
+				\draw [arrow] (abrir) -- (lanza);
+				\draw [arrow] (lanza) -- node[midway, above] {Nuevo hilo} (hilo);
+				\draw [arrow] (lanza) -- (recibe);
+				\draw [arrow] (recibe) -- (leer);
+				\draw [arrow] (leer) -- (control);
+				\draw [arrow] (control) -- (escribir);
+				\draw [arrow] (escribir) -| (recibe);
+
+				\draw [arrow] (hilo) -- (nueva);
+				\draw [arrow] (nueva) -- node[midway, above] {Mensaje} (recibe);
+				\draw [arrow] (nueva) -- (lanzaCliente);
+				\draw [arrow] (lanzaCliente) -- ++(3,0)
+												|- (hilo);
+
+				\draw [arrow] (lanzaCliente) -- node[midway,left]{Nuevo hilo}(lanzaSubCliente);
+				\draw [arrow] (lanzaSubCliente) -- (hayCliente);
+				\draw [arrow] (hayCliente) -- node[midway,above]{No}(drop);
+				\draw [arrow] (hayCliente) -- node[midway,left]{Si}(subclirecv);
+				\draw [arrow] (subclirecv) |- node[midway,right]{Hay mensaje}(escribiServ);
+				\draw [arrow] (escribiServ) -- (servrecv);
+				\draw [arrow] (escribiServ) -- node[midway,above]{Mensaje}++(-6.7,0)
+												|- (leer);
+				\draw [arrow] (subclirecv) -- node[midway,above]{Timeout}(servrecv);
+				\draw [arrow] (servrecv) |- (hayCliente);
+				\draw [arrow] (escribir) |- node[midway,below]{Mensaje}(servrecv);
+
+				\draw [arrow] (lanzaSubCliente) -- node[midway,above]{Nuevo hilo}(esperarcli);
+				\draw [arrow] (esperarcli) -- (enviarcli);
+				\draw [arrow] (enviarcli) -- node[midway,above]{Mensaje}(subclirecv);
+
+
+			\end{tikzpicture}
+		\end{center}
+	\caption{Diagrama de flujo del servidor (Recuadro rojo: hilo principal. 
+	Recuadro azul: hilo de escucha. 
+	Recuadro verde: hilo de gestión de cliente. 
+	Recuadro Amarillo: sub-hilo de gestión de cliente)}
+	\label{fig:diagramaServer}
+	\end{figure}
+
+	El lazo principal, encargado del monitoreo y manejo de las comunicaciones, se ejecuta en el hilo principal del código. 
+	Previo a entrar en dicho lazo, se lanza un hilo independiente para la gestión de la escucha del puerto.
+	La gestión de escucha es muy simple, espera de forma bloqueante un cliente entrante. Cuando un cliente llega
+	se crea un canal de comunicación y se envía un extremo al hilo principal y el otro extremo se envía, junto con su
+	creación, a un nuevo hilo para el manejo del cliente.
+	El hilo de manejo de cliente tiene que poder gestionar en simultaneo tanto los mensajes entrantes de los clientes,
+	para enviar al hilo principal, y los mensajes del servidor para enviar a los clientes. Para reducir la carga 
+	sobre el CPU, se realizan ambas operaciones de forma bloqueante, cada una en su propio hilo. 
+	Cualquier cambio en el estado del sistema es enviado a todos los clientes conectados, y cualquier mensaje de
+	control de un cliente llega al servidor y al sistema.
+
+	\clearpage
+	\section{Cliente}
+
+	El cliente sigue una lógica muy directa. Primero se conecta con el servidor, luego inicia un bucle de ejecución
+	en tres partes. De forma no bloqueante se consulta si hay mensajes del servidor y si hay algún mensaje para 
+	enviar se lo envía. Si llegó alguna actualización del servidor se la procesa, traduciendo los datos para poder
+	mostrarlos en pantalla. Por ultimo se genera la imagen y se pregunta si ocurrió alguna interacción por teclado,
+	si hubo interacción se la condensa en un mensaje para el servidor y se vuelve a iniciar el bucle.
+
+	\begin{figure}[!h]
+		\begin{center}
+			\begin{tikzpicture}[node distance=2cm]
+
+				\node (start) [startstop] {Inicio};
+				\node (conectar) [process, below of=start] {Conectar al servidor};
+				\node (comunicar) [process, below of=conectar] {Comunicaciones con el servidor};
+				\node (procesar) [process, below of=comunicar] {Procesar};
+				\node (hmi) [process, below of=procesar] {Gestionar HMI};
+
+				\draw [arrow] (start) -- (conectar);
+				\draw [arrow] (conectar) -- (comunicar);
+				\draw [arrow] (comunicar) -- (procesar);
+				\draw [arrow] (procesar) -- (hmi);
+				\draw [arrow] (hmi) -- ++(3,0)
+											|- (comunicar);
+
+			\end{tikzpicture}
+		\end{center}
+	\caption{Diagrama de flujo del cliente}
+	\label{fig:diagramaCliente}
+	\end{figure}
+
+	\clearpage
+	\section{Ensamblaje del software}
+
+	Se explicaron todos los módulos de código de forma independiente, pero no se mencionó como estos trabajarían en
+	conjunto. Aprovechando lo mencionado en la sección \ref{Servos}, Linux al ser un sistema operativo
+	multiproceso permite lanzar cada módulo en un hilo independiente y mantenerlos en sincronía mediante mensajes.
+	Esto simplifica mucho la integración porque podemos saber de antemano que no tendremos problemas coordinando los
+	módulos ya probados.
 
 \end{document}

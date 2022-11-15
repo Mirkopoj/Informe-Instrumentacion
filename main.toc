@@ -1,0 +1,22 @@
+\babel@toc {spanish}{}\relax 
+\contentsline {section}{\numberline {1}Resumen}{3}{section.1}%
+\contentsline {section}{\numberline {2}Marco teórico}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Pogopins}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}SBC}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}/dev}{4}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}Módulos del kernel}{4}{subsubsection.2.3.1}%
+\contentsline {subsection}{\numberline {2.4}Rust}{5}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Materiales}{6}{section.3}%
+\contentsline {subsection}{\numberline {3.1}NanoPi Neo3}{6}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}PIC18F45K50}{6}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Motorreductor}{6}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Servo motor}{7}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Sensor óptico}{8}{subsection.3.5}%
+\contentsline {section}{\numberline {4}Estructura}{9}{section.4}%
+\contentsline {section}{\numberline {5}Pickle}{11}{section.5}%
+\contentsline {section}{\numberline {6}Cinta}{13}{section.6}%
+\contentsline {section}{\numberline {7}Servos}{16}{section.7}%
+\contentsline {section}{\numberline {8}ADC}{18}{section.8}%
+\contentsline {section}{\numberline {9}Servidor}{19}{section.9}%
+\contentsline {section}{\numberline {10}Cliente}{21}{section.10}%
+\contentsline {section}{\numberline {11}Ensamblaje del software}{22}{section.11}%
