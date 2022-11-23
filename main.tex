@@ -37,6 +37,11 @@
 \usepackage{cancel}
 \usepackage{color}
 \usepackage{listings}
+
+\usepackage{csquotes}
+\usepackage[backend=biber]{biblatex}
+\addbibresource{/home/mirko/.bib/bibliografia.bib} 
+
 \usetikzlibrary{shapes.geometric, arrows}
 \usepackage{minted}
 \lstset{ %
@@ -181,18 +186,6 @@ escapeinside={\%*}{*)}          % if you want to add a comment within your code
 \section{Marco teórico}
 \label{Marco teórico}
 
-\subsection{Pogopins}
-
-Se conoce como Pogopin a un tipo de contacto con muelle como el que se muestra en la figura \ref{fig:pogopin}.
-Este permite realizar una conexión con un circuito impreso con únicamente un pad expuesto de forma robotizada.
-
-\begin{figure}[!ht]
-\centering
-\includegraphics[]{imagenes/pogopin.jpg}
-\caption{Ejemplo de Pogopins}
-\label{fig:pogopin}
-\end{figure}
-
 \subsection{SBC}
 
 SCB son las siglas en ingles de Single Board Computer, refieren a una computadora completamente contenida en una
@@ -206,6 +199,9 @@ hardware, tratando a los dispositivos físicos del sistema como parte del sistem
 asociando los canales de lectura y escritura de los archivos con los dispositivos físicos. Por ejemplo,
 si se escribe al archivo \textbf{/dev/dsp}, el cual representa los parlantes, se escuchará un sonido. Para el correcto
 funcionamiento de los dispositivos se debe respetar el protocolo mediante el cual se interactúa con estos archivos.
+
+Los archivos de dispositivo mas relevantes para la operación de este sistema de validación de placas son los asocioados
+a las GPIO y los puertos de comunicación serie.
 
 \subsubsection{Módulos del kernel}
 
@@ -239,8 +235,18 @@ que dicho registro exista, depende del programador conocer la plataforma en la q
 ejecutar el programa, para ello existe un tipo de bloque de código llamado ``unsafe'', todo
 programa contenido en un bloque con esta etiqueta será compilado sin revisión del ``Borrow checker''.
 
+Para la validación de placas se requiere que el usuario programe sus pruebas personalizadas, y el mecanismo de 
+presentación de resultados en Rust. Para ello se sugiere tener conocimiento en las siguientes áreas y ``crates''
+del lenguaje. Derivación de rasgos (comúnmente llamados traits por su nombre en ingles), esta es una forma de 
+dotar a una estructura de ciertos rasgos, como se explica en \cite{RustByExample_Derive}. 
+Macroquad, en \cite{Macroquad_rs} se explica que este crate es motor de vídeo juegos simple y fácil de usar. 
+La interacción con las GPIO de Linux desde Rust, se recomienda el crate gpiod, una interfaz para las llamadas 
+a sistema como se describe en \cite{gpiod}.
+Para la interacción con los puertos series de forma segura desde el espacio de usuario existen crates de dicados,
+``i2c\_linux'' provee esta interfaz para el I2C de Linux y SMBus según \cite{i2c_linux}.
+
 \clearpage
-\section{Materiales}
+\section{Materiales utilizados en la maquetación}
 
 En esta sección se describen los elementos utilizados para la realización del proyecto, no se discute si la
 elección fue óptima porque estos son productos de los que se disponía con antelación.
@@ -757,5 +763,7 @@ Esta implementación se muestra en el código \ref{code:cinta2}.
 	multiproceso permite lanzar cada módulo en un hilo independiente y mantenerlos en sincronía mediante mensajes.
 	Esto simplifica mucho la integración porque podemos saber de antemano que no tendremos problemas coordinando los
 	módulos ya probados.
+
+\printbibliography
 
 \end{document}
